@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "controle-de-ferias-client-side-solution",
+    "id": "2f1cdbd4-3c6d-49bb-bde2-0095776dd992",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "controle-de-ferias description"
+      },
+      "longDescription": {
+        "default": "controle-de-ferias description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "controle-de-ferias Feature",
+        "description": "The feature that activates elements of the controle-de-ferias solution.",
+        "id": "35385d98-91e6-4773-8f56-58666f055d01",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/controle-de-ferias.sppkg"
+  }
+}

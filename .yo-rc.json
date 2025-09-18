@@ -1,0 +1,18 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.17.1",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "controle-de-ferias",
+    "libraryId": "2f1cdbd4-3c6d-49bb-bde2-0095776dd992",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "controle-de-ferias",
+    "solutionShortDescription": "controle-de-ferias description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}
