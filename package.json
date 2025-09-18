@@ -10,7 +10,8 @@
     "build": "gulp bundle",
     "clean": "gulp clean",
     "test": "gulp test",
-    "serve": "gulp clean; gulp build; gulp serve"
+    "serve": "gulp clean; gulp build; gulp serve",
+    "package": "gulp clean; gulp build; gulp bundle --ship --max_old_space_size=9999; gulp package-solution --ship"
   },
   "dependencies": {
     "@fluentui/react": "^8.106.4",
