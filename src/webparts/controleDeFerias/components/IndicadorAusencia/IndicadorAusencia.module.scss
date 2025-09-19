@@ -1,0 +1,363 @@
+/**
+ * Estilos CSS Modules para o componente IndicadorAusencia
+ * Implementa a paleta de cores (#FF8000, #8000FF) e padrões visuais avançados
+ */
+
+/* ===== VARIÁVEIS DE DESIGN ===== */
+:root {
+  --cor-primaria-laranja: #FF8000;
+  --cor-primaria-roxo: #8000FF;
+  --cor-neutra-escura: #000000;
+  --cor-neutra-media: #666666;
+  --cor-neutra-clara: #f8f9fa;
+  --cor-branca: #ffffff;
+  --sombra-suave: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --sombra-intensa: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --transicao-padrao: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius-padrao: 6px;
+  --border-radius-grande: 8px;
+}
+
+/* ===== COMPONENTE PRINCIPAL ===== */
+.indicador {
+  position: relative;
+  display: inline-block;
+  min-width: 40px;
+  border-radius: var(--border-radius-padrao);
+  overflow: hidden;
+  cursor: pointer;
+  transition: var(--transicao-padrao);
+  box-shadow: var(--sombra-suave);
+
+  /* Estados de interação */
+  &:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: var(--sombra-intensa);
+
+    .indicadorOverlay {
+      opacity: 0.1;
+    }
+
+    .indicadorContent {
+      transform: scale(1.05);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+    transition: all 0.1s ease;
+  }
+
+  &:focus {
+    outline: 2px solid var(--cor-primaria-laranja);
+    outline-offset: 2px;
+    box-shadow:
+      var(--sombra-intensa),
+      0 0 0 4px rgba(255, 128, 0, 0.2);
+  }
+
+  /* Estados para diferentes status */
+  &[data-status="aprovado"] {
+    border-left: 4px solid var(--cor-primaria-laranja);
+  }
+
+  &[data-status="pendente"] {
+    border-left: 4px dashed var(--cor-primaria-roxo);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(255, 255, 255, 0.3) 2px,
+        rgba(255, 255, 255, 0.3) 4px
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+  }
+
+  &[data-status="rejeitado"] {
+    opacity: 0.6;
+    filter: grayscale(0.4);
+    border-left: 4px solid #bdc3c7;
+  }
+}
+
+/* ===== OVERLAY PARA INTERAÇÃO ===== */
+.indicadorOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  opacity: 0;
+  transition: var(--transicao-padrao);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ===== CONTEÚDO DO INDICADOR ===== */
+.indicadorContent {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 4px 8px;
+  transition: var(--transicao-padrao);
+  z-index: 3;
+}
+
+.diasCount {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cor-branca);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+/* ===== VARIAÇÕES DE TAMANHO ===== */
+.indicador {
+  /* Tamanho pequeno */
+  &.pequeno {
+    min-width: 30px;
+    height: 18px;
+
+    .diasCount {
+      font-size: 10px;
+    }
+  }
+
+  /* Tamanho médio (padrão) */
+  &.medio {
+    min-width: 40px;
+    height: 24px;
+
+    .diasCount {
+      font-size: 11px;
+    }
+  }
+
+  /* Tamanho grande */
+  &.grande {
+    min-width: 60px;
+    height: 32px;
+
+    .diasCount {
+      font-size: 13px;
+    }
+
+    .indicadorContent {
+      padding: 6px 12px;
+    }
+  }
+}
+
+/* ===== ANIMAÇÕES ESPECIAIS ===== */
+@keyframes pulseApproved {
+  0% {
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+  }
+}
+
+@keyframes pulsePending {
+  0% {
+    box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(243, 156, 18, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(243, 156, 18, 0);
+  }
+}
+
+/* Aplicar animações quando solicitado */
+.indicador {
+  &.animate {
+    &[data-status="aprovado"] {
+      animation: pulseApproved 2s infinite;
+    }
+
+    &[data-status="pendente"] {
+      animation: pulsePending 2s infinite;
+    }
+  }
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 768px) {
+  .indicador {
+    min-width: 35px;
+    height: 20px;
+
+    .diasCount {
+      font-size: 10px;
+    }
+
+    .indicadorContent {
+      padding: 2px 6px;
+    }
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .indicador {
+    min-width: 30px;
+    height: 18px;
+
+    .diasCount {
+      font-size: 9px;
+    }
+
+    .indicadorContent {
+      padding: 2px 4px;
+    }
+  }
+}
+
+/* ===== PADRÕES VISUAIS PARA STATUS ===== */
+
+/* Padrão listrado para status pendente */
+.indicador[data-status="pendente"] {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.2) 6px,
+    rgba(255, 255, 255, 0.2) 12px
+  ) !important;
+}
+
+/* Overlay semi-transparente para rejeitado */
+.indicador[data-status="rejeitado"] {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(189, 195, 199, 0.3);
+    z-index: 1;
+  }
+
+  .indicadorContent {
+    z-index: 2;
+  }
+}
+
+/* ===== ACESSIBILIDADE ===== */
+.indicador {
+  /* Modo de alto contraste */
+  @media (prefers-contrast: high) {
+    border: 2px solid var(--cor-neutra-escura);
+
+    .diasCount {
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+  }
+
+  /* Redução de movimento */
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+
+    &.animate {
+      animation: none;
+    }
+  }
+
+  /* Foco visível para navegação por teclado */
+  &:focus-visible {
+    outline: 3px solid var(--cor-primaria-laranja);
+    outline-offset: 2px;
+  }
+}
+
+/* ===== ESTADOS DE CARREGAMENTO ===== */
+.indicador {
+  &.loading {
+    background: linear-gradient(
+      90deg,
+      #f0f0f0 25%,
+      #e0e0e0 50%,
+      #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: loadingShimmer 1.5s infinite;
+
+    .indicadorContent {
+      opacity: 0;
+    }
+  }
+}
+
+@keyframes loadingShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== UTILITÁRIOS ===== */
+.indicador {
+  /* Classe para destacar indicador */
+  &.destacado {
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      border: 2px solid var(--cor-primaria-laranja);
+      border-radius: calc(var(--border-radius-padrao) + 4px);
+      animation: destacarPulse 2s infinite;
+    }
+  }
+}
+
+@keyframes destacarPulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

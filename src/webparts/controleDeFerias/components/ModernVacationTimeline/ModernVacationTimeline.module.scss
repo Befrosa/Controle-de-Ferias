@@ -1,0 +1,437 @@
+/**
+ * Estilos CSS Modules para o componente ModernVacationTimeline
+ * Integração moderna com o sistema existente
+ */
+
+/* ===== VARIÁVEIS GLOBAIS ===== */
+:root {
+  --cor-primaria-laranja: #FF8000;
+  --cor-primaria-roxo: #8000FF;
+  --cor-neutra-escura: #000000;
+  --cor-neutra-media: #666666;
+  --cor-neutra-clara: #f8f9fa;
+  --cor-branca: #ffffff;
+  --sombra-suave: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --sombra-intensa: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --transicao-padrao: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius-padrao: 8px;
+  --espacamento-padrao: 16px;
+}
+
+/* ===== CONTAINER PRINCIPAL ===== */
+.modernTimelineContainer {
+  width: 100%;
+  min-height: 500px;
+  background: var(--cor-branca);
+  border-radius: var(--border-radius-padrao);
+  box-shadow: var(--sombra-intensa);
+  position: relative;
+  overflow: hidden;
+
+  /* Gradiente de destaque no topo */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--cor-primaria-laranja) 0%,
+      var(--cor-primaria-roxo) 100%
+    );
+    z-index: 1;
+  }
+
+  /* Animação de entrada suave */
+  animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ===== ESTADOS DE CARREGAMENTO ===== */
+.modernTimelineContainer {
+  &.loading {
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(4px);
+      z-index: 10;
+    }
+  }
+}
+
+/* Skeleton loading para cards */
+@keyframes skeletonShimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+.skeletonCard {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200px 100%;
+  animation: skeletonShimmer 1.5s infinite;
+  border-radius: var(--border-radius-padrao);
+}
+
+/* ===== MELHORIAS DE INTERFACE ===== */
+
+/* Overlay para modais e formulários */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== ESTADOS DE ERRO ===== */
+.errorBoundary {
+  padding: var(--espacamento-padrao);
+  text-align: center;
+  background: linear-gradient(
+    135deg,
+    #fff5f5 0%,
+    #fed7d7 100%
+  );
+  border: 2px solid #feb2b2;
+  border-radius: var(--border-radius-padrao);
+  margin: var(--espacamento-padrao);
+
+  .errorIcon {
+    font-size: 48px;
+    color: #e53e3e;
+    margin-bottom: var(--espacamento-padrao);
+  }
+
+  .errorTitle {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+  }
+
+  .errorMessage {
+    color: #4a5568;
+    margin-bottom: var(--espacamento-padrao);
+  }
+
+  .errorActions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* ===== NOTIFICAÇÕES E FEEDBACK ===== */
+.notificationContainer {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+}
+
+.notification {
+  padding: var(--espacamento-padrao);
+  border-radius: var(--border-radius-padrao);
+  box-shadow: var(--sombra-intensa);
+  animation: slideInRight 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+
+  &.success {
+    background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+    border-left: 4px solid #38a169;
+  }
+
+  &.error {
+    background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+    border-left: 4px solid #e53e3e;
+  }
+
+  &.warning {
+    background: linear-gradient(135deg, #fffaf0 0%, #fbd38d 100%);
+    border-left: 4px solid #d69e2e;
+  }
+
+  &.info {
+    background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+    border-left: 4px solid #3182ce;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== RESPONSIVIDADE ESPECÍFICA ===== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .modernTimelineContainer {
+    margin: 0 var(--espacamento-padrao);
+    border-radius: var(--border-radius-padrao);
+  }
+
+  .notificationContainer {
+    right: var(--espacamento-padrao);
+    left: var(--espacamento-padrao);
+    max-width: none;
+  }
+}
+
+/* Móveis */
+@media (max-width: 768px) {
+  .modernTimelineContainer {
+    margin: 0 8px;
+    border-radius: 6px;
+    min-height: 400px;
+  }
+
+  .notificationContainer {
+    top: 10px;
+    right: 8px;
+    left: 8px;
+  }
+
+  .notification {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .errorBoundary {
+    padding: 12px;
+    margin: 8px;
+
+    .errorIcon {
+      font-size: 36px;
+    }
+
+    .errorTitle {
+      font-size: 18px;
+    }
+
+    .errorActions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+}
+
+/* Móveis pequenos */
+@media (max-width: 480px) {
+  .modernTimelineContainer {
+    margin: 0 4px;
+    border-radius: 4px;
+  }
+
+  .notificationContainer {
+    top: 8px;
+    right: 4px;
+    left: 4px;
+  }
+}
+
+/* ===== TEMA ESCURO (Opcional) ===== */
+@media (prefers-color-scheme: dark) {
+  .modernTimelineContainer {
+    --cor-branca: #1a202c;
+    --cor-neutra-clara: #2d3748;
+    --cor-neutra-media: #a0aec0;
+    --cor-neutra-escura: #f7fafc;
+
+    background: var(--cor-branca);
+    color: var(--cor-neutra-escura);
+  }
+
+  .errorBoundary {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    border-color: #e53e3e;
+    color: var(--cor-neutra-escura);
+  }
+
+  .notification {
+    &.success {
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      color: #68d391;
+    }
+
+    &.error {
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      color: #fc8181;
+    }
+
+    &.warning {
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      color: #f6e05e;
+    }
+
+    &.info {
+      background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      color: #63b3ed;
+    }
+  }
+}
+
+/* ===== ACESSIBILIDADE ===== */
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .modernTimelineContainer {
+    border: 2px solid var(--cor-neutra-escura);
+    box-shadow: none;
+  }
+
+  .notification {
+    border: 2px solid currentColor;
+  }
+
+  .errorBoundary {
+    border-width: 3px;
+  }
+}
+
+/* Movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+  .modernTimelineContainer,
+  .notification,
+  .modalOverlay {
+    animation: none;
+    transition: none;
+  }
+
+  .skeletonCard {
+    animation: none;
+    background: #f0f0f0;
+  }
+}
+
+/* ===== UTILITÁRIOS DE ESTADO ===== */
+
+/* Classe para elementos carregando */
+.loading {
+  pointer-events: none;
+  opacity: 0.6;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--cor-primaria-laranja);
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Classe para elementos com erro */
+.hasError {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
+}
+
+/* Classe para elementos de sucesso */
+.hasSuccess {
+  border-color: #38a169 !important;
+  box-shadow: 0 0 0 3px rgba(56, 161, 105, 0.1) !important;
+}
+
+/* ===== INTEGRAÇÃO COM SISTEMA EXISTENTE ===== */
+
+/* Sobrescrever estilos do SharePoint quando necessário */
+.modernTimelineContainer {
+  /* Reset de estilos do SharePoint */
+  .ms-font-m,
+  .ms-font-l,
+  .ms-font-xl {
+    font-family: 'Segoe UI', 'Segoe UI Web (West European)', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+  }
+
+  /* Garantir que cores customizadas sejam mantidas */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Sobrescrever z-index padrão do SharePoint */
+  .modal,
+  .tooltip,
+  .dropdown {
+    z-index: 1050 !important;
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .modernTimelineContainer {
+    box-shadow: none;
+    border: 1px solid #000;
+
+    &::before {
+      display: none;
+    }
+  }
+
+  .notificationContainer,
+  .modalOverlay {
+    display: none !important;
+  }
+
+  .errorBoundary {
+    border: 2px solid #000;
+    background: #fff !important;
+    color: #000 !important;
+  }
+}

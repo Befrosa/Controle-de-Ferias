@@ -17,10 +17,10 @@ import { UserPicker } from '../common/UserPicker';
 import {
   IVacationFormProps,
   IVacationFormData,
-  IUserInfo,
-  VACATION_TYPES
+  IUserInfo
 } from './IVacationFormTypes';
 import { SPFI } from '@pnp/sp';
+import { VacationService } from '../VacationService'; // Adicionando import do serviço
 import styles from './VacationForm.module.scss';
 
 export interface IVacationFormComponentProps extends IVacationFormProps {
@@ -48,6 +48,45 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [submitMessage, setSubmitMessage] = useState<string>('');
   const [submitMessageType, setSubmitMessageType] = useState<MessageBarType>(MessageBarType.success);
+  const [vacationTypes, setVacationTypes] = useState<IDropdownOption[]>([]); // Novo estado para tipos de férias
+  const [isLoadingTypes, setIsLoadingTypes] = useState<boolean>(true); // Estado para carregamento dos tipos
+
+  // Serviço para comunicação com SharePoint
+  const vacationService = React.useMemo(() => new VacationService(sp), [sp]);
+
+  // Carregar tipos de férias do SharePoint
+  useEffect(() => {
+    const loadVacationTypes = async () => {
+      setIsLoadingTypes(true);
+      try {
+        const types = await vacationService.getVacationTypeOptions();
+        // Converter para o formato IDropdownOption
+        const dropdownOptions: IDropdownOption[] = types.map(type => ({
+          key: type.key,
+          text: type.text
+        }));
+        setVacationTypes(dropdownOptions);
+      } catch (error) {
+        console.error('Error loading vacation types:', error);
+        // Fallback para tipos padrão
+        setVacationTypes([
+          { key: 'Férias anuais', text: 'Férias anuais' },
+          { key: 'Licença médica', text: 'Licença médica' },
+          { key: 'Licença maternidade', text: 'Licença maternidade' },
+          { key: 'Licença paternidade', text: 'Licença paternidade' },
+          { key: 'Folga compensatória', text: 'Folga compensatória' },
+          { key: 'Ausência justificada', text: 'Ausência justificada' },
+          { key: 'Outros', text: 'Outros' }
+        ]);
+      } finally {
+        setIsLoadingTypes(false);
+      }
+    };
+
+    if (isOpen) {
+      loadVacationTypes();
+    }
+  }, [isOpen, vacationService]);
 
   useEffect(() => {
     if (initialData) {
@@ -292,13 +331,19 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
         <div className={styles.formSection}>
           <Dropdown
             label="Tipo de Férias"
-            placeholder="Selecione o tipo de férias"
-            options={VACATION_TYPES}
+            placeholder={isLoadingTypes ? "Carregando tipos..." : "Selecione o tipo de férias"}
+            options={vacationTypes}
             selectedKey={formData.vacationType}
             onChange={handleVacationTypeChange}
             required={true}
             errorMessage={errors.vacationType}
+            disabled={isLoadingTypes}
           />
+          {isLoadingTypes && (
+            <div style={{ marginTop: '8px', color: '#666666' }}>
+              Carregando opções do SharePoint...
+            </div>
+          )}
         </div>
 
         <div className={styles.formSection}>
@@ -317,7 +362,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
           <PrimaryButton
             text={isEditing ? 'Salvar Alterações' : 'Cadastrar'}
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingTypes}
             className={styles.saveButton}
           />
           {isSubmitting && (
@@ -326,7 +371,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
           <DefaultButton
             text="Cancelar"
             onClick={handleCancel}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingTypes}
             className={styles.cancelButton}
           />
         </div>

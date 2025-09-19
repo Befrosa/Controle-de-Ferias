@@ -1,0 +1,414 @@
+/**
+ * Estilos CSS Modules para o componente TimelineAusencias
+ * Layout moderno com paleta de cores (#FF8000, #8000FF) e design responsivo
+ */
+
+/* ===== VARIÁVEIS DE DESIGN ===== */
+:root {
+  --cor-primaria-laranja: #FF8000;
+  --cor-primaria-roxo: #8000FF;
+  --cor-neutra-escura: #000000;
+  --cor-neutra-media: #666666;
+  --cor-neutra-clara: #f8f9fa;
+  --cor-neutra-muito-clara: #fafbfc;
+  --cor-branca: #ffffff;
+  --cor-borda: #e1e5e9;
+  --cor-hover: #f5f5f5;
+
+  --sombra-suave: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --sombra-media: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --sombra-intensa: 0 10px 25px rgba(0, 0, 0, 0.15);
+
+  --transicao-rapida: all 0.2s ease;
+  --transicao-padrao: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transicao-lenta: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --border-radius-pequeno: 4px;
+  --border-radius-medio: 8px;
+  --border-radius-grande: 12px;
+  --border-radius-muito-grande: 16px;
+
+  --espacamento-xs: 4px;
+  --espacamento-sm: 8px;
+  --espacamento-md: 16px;
+  --espacamento-lg: 24px;
+  --espacamento-xl: 32px;
+  --espacamento-xxl: 48px;
+}
+
+/* ===== CONTAINER PRINCIPAL ===== */
+.timelineContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: var(--cor-branca);
+  border-radius: var(--border-radius-muito-grande);
+  box-shadow: var(--sombra-intensa);
+  overflow: hidden;
+  position: relative;
+
+  /* Gradiente sutil de fundo */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--cor-primaria-laranja) 0%,
+      var(--cor-primaria-roxo) 100%
+    );
+    z-index: 1;
+  }
+
+  /* Animação de entrada */
+  animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== MODOS DE VISUALIZAÇÃO ===== */
+
+/* Modo Grid (padrão) */
+.grid {
+  .colaboradorRow {
+    transition: var(--transicao-padrao);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sombra-media);
+    }
+  }
+}
+
+/* Modo Lista */
+.lista {
+  .colaboradorRow {
+    grid-template-columns: 1fr;
+    gap: var(--espacamento-sm);
+
+    .colaboradorInfo {
+      margin-bottom: var(--espacamento-xs);
+    }
+
+    .indicadoresContainer {
+      padding-top: var(--espacamento-sm);
+      border-top: 1px solid var(--cor-borda);
+    }
+  }
+}
+
+/* ===== ESTADOS ESPECIAIS ===== */
+
+/* Estado de carregamento */
+.timelineContainer {
+  &.loading {
+    .colaboradorRow {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .indicadoresContainer::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.8) 50%,
+        transparent 100%
+      );
+      animation: loadingShimmer 1.5s infinite;
+    }
+  }
+}
+
+@keyframes loadingShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Estado vazio com estilo aprimorado */
+.emptyState {
+  background: linear-gradient(
+    135deg,
+    var(--cor-neutra-muito-clara) 0%,
+    var(--cor-neutra-clara) 100%
+  );
+  border: 2px dashed var(--cor-borda);
+  border-radius: var(--border-radius-grande);
+
+  /* Animação sutil */
+  animation: fadeInScale 0.8s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ===== MELHORIAS DE INTERAÇÃO ===== */
+
+/* Indicadores com animação de grupo */
+.indicadoresContainer {
+  position: relative;
+
+  /* Animação em cascata para os indicadores */
+  .indicador {
+    animation: slideInScale 0.4s ease-out;
+    animation-delay: calc(var(--index, 0) * 0.1s);
+    animation-fill-mode: both;
+  }
+
+  /* Hover em grupo */
+  &:hover .indicador {
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+      z-index: 10;
+    }
+  }
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ===== MELHORIAS VISUAIS ===== */
+
+/* Separadores visuais */
+.colaboradorRow {
+  position: relative;
+
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--cor-borda) 20%,
+      var(--cor-borda) 80%,
+      transparent 100%
+    );
+  }
+}
+
+/* ===== RESPONSIVIDADE AVANÇADA ===== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .timelineContainer {
+    margin: var(--espacamento-md);
+    border-radius: var(--border-radius-grande);
+  }
+
+  .colaboradorRow {
+    grid-template-columns: 1fr;
+    gap: var(--espacamento-md);
+  }
+
+  .indicadoresContainer {
+    justify-content: center;
+  }
+}
+
+/* Móveis grandes */
+@media (max-width: 768px) {
+  .timelineContainer {
+    margin: var(--espacamento-sm);
+    border-radius: var(--border-radius-medio);
+    padding: var(--espacamento-md);
+  }
+
+  .controlsRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espacamento-md);
+  }
+
+  .filtersSection {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navigationControls {
+    justify-content: center;
+  }
+
+  .viewToggle {
+    justify-content: center;
+  }
+}
+
+/* Móveis pequenos */
+@media (max-width: 480px) {
+  .timelineContainer {
+    margin: var(--espacamento-xs);
+    padding: var(--espacamento-sm);
+  }
+
+  .header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--espacamento-sm);
+  }
+
+  .colaboradorInfo {
+    text-align: center;
+  }
+
+  .indicadoresContainer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--espacamento-xs);
+
+    .indicador {
+      width: 100% !important;
+      min-height: 36px;
+    }
+  }
+
+  .legendaGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== MODO ESCURO (Opcional) ===== */
+@media (prefers-color-scheme: dark) {
+  .timelineContainer {
+    --cor-branca: #1a1a1a;
+    --cor-neutra-muito-clara: #2a2a2a;
+    --cor-neutra-clara: #333333;
+    --cor-borda: #404040;
+    --cor-hover: #404040;
+    --cor-neutra-escura: #ffffff;
+    --cor-neutra-media: #cccccc;
+
+    background: var(--cor-branca);
+    color: var(--cor-neutra-escura);
+  }
+}
+
+/* ===== ACESSIBILIDADE ===== */
+
+/* Alto contraste */
+@media (prefers-contrast: high) {
+  .timelineContainer {
+    border: 2px solid var(--cor-neutra-escura);
+  }
+
+  .colaboradorRow {
+    border: 2px solid var(--cor-borda);
+  }
+
+  .indicador {
+    border-width: 2px !important;
+  }
+}
+
+/* Redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .timelineContainer,
+  .colaboradorRow,
+  .indicador,
+  .indicadoresContainer .indicador {
+    animation: none;
+    transition: none;
+  }
+
+  .grid .colaboradorRow:hover {
+    transform: none;
+  }
+}
+
+/* ===== UTILITÁRIOS ===== */
+
+/* Classes auxiliares para estados especiais */
+.destacado {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid var(--cor-primaria-laranja);
+    border-radius: calc(var(--border-radius-medio) + 4px);
+    animation: pulseHighlight 2s infinite;
+  }
+}
+
+@keyframes pulseHighlight {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.02);
+  }
+}
+
+/* Classe para animações personalizadas */
+.animado {
+  .indicador {
+    transition: var(--transicao-padrao);
+
+    &:nth-child(1) { animation-delay: 0.1s; }
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+    &:nth-child(4) { animation-delay: 0.4s; }
+    &:nth-child(5) { animation-delay: 0.5s; }
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .timelineContainer {
+    box-shadow: none;
+    border: 1px solid #000;
+
+    .controlsRow {
+      display: none;
+    }
+
+    .colaboradorRow:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
+}

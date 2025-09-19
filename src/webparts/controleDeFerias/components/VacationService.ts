@@ -2,6 +2,7 @@ import { SPFI } from "@pnp/sp";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
+import "@pnp/sp/fields";
 import { IVacation } from "./IVacation";
 
 export class VacationService {
@@ -77,5 +78,43 @@ export class VacationService {
       console.error(`Error deleting vacation item ${itemId}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Gets vacation type options from SharePoint choice field.
+   * @returns A promise that resolves to an array of dropdown options.
+   */
+  public async getVacationTypeOptions(): Promise<Array<{key: string, text: string}>> {
+    try {
+      const list = this._sp.web.lists.getByTitle("Controle de ferias");
+      const field = await list.fields.getByInternalNameOrTitle("TipoFerias")();
+
+      if (field && field.Choices && field.Choices.length > 0) {
+        console.log('Loaded vacation type options from SharePoint:', field.Choices);
+        return field.Choices.map((choice: string) => ({
+          key: choice,
+          text: choice
+        }));
+      } else {
+        console.warn('No choices found in TipoFerias field, using default options');
+        return this.getDefaultVacationTypes();
+      }
+    } catch (error) {
+      console.error('Error getting vacation type options from SharePoint:', error);
+      // Return default options on error
+      return this.getDefaultVacationTypes();
+    }
+  }
+
+  private getDefaultVacationTypes(): Array<{key: string, text: string}> {
+    return [
+      { key: 'Férias anuais', text: 'Férias anuais' },
+      { key: 'Licença médica', text: 'Licença médica' },
+      { key: 'Licença maternidade', text: 'Licença maternidade' },
+      { key: 'Licença paternidade', text: 'Licença paternidade' },
+      { key: 'Folga compensatória', text: 'Folga compensatória' },
+      { key: 'Ausência justificada', text: 'Ausência justificada' },
+      { key: 'Outros', text: 'Outros' }
+    ];
   }
 }

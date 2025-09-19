@@ -25,12 +25,4 @@ export interface IVacationTypeOption {
   text: string;
 }
 
-export const VACATION_TYPES: IVacationTypeOption[] = [
-  { key: 'ferias-anuais', text: 'Férias anuais' },
-  { key: 'licenca-medica', text: 'Licença médica' },
-  { key: 'licenca-maternidade', text: 'Licença maternidade' },
-  { key: 'licenca-paternidade', text: 'Licença paternidade' },
-  { key: 'folga-compensatoria', text: 'Folga compensatória' },
-  { key: 'ausencia-justificada', text: 'Ausência justificada' },
-  { key: 'outros', text: 'Outros' }
-];
+// Removendo a constante VACATION_TYPES fixa e usando uma função para obter os tipos
