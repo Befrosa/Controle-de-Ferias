@@ -1,0 +1,113 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+
+  .messageBar {
+    margin-bottom: 16px;
+  }
+
+  .formSection {
+    margin-bottom: 16px;
+  }
+
+  .formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+
+    .formField {
+      display: flex;
+      flex-direction: column;
+
+      .datePicker {
+        width: 100%;
+      }
+
+      .errorMessage {
+        color: #d13438;
+        font-size: 12px;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .formActions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding-top: 16px;
+    margin-top: auto;
+    border-top: 1px solid #edebe9;
+
+    .saveButton {
+      min-width: 120px;
+    }
+
+    .cancelButton {
+      min-width: 100px;
+    }
+
+    .spinner {
+      margin-right: 8px;
+    }
+  }
+}
+
+// Responsive design for mobile
+@media (max-width: 768px) {
+  .form {
+    gap: 20px;
+
+    .formRow {
+      grid-template-columns: 1fr;
+      gap: 20px;
+
+      .formField {
+        .errorMessage {
+          font-size: 14px;
+          margin-top: 6px;
+        }
+      }
+    }
+
+    .formSection {
+      margin-bottom: 20px;
+    }
+
+    .formActions {
+      flex-direction: column-reverse;
+      gap: 16px;
+      padding-top: 20px;
+
+      .saveButton,
+      .cancelButton {
+        width: 100%;
+        min-width: auto;
+      }
+
+      .spinner {
+        margin-right: 0;
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
+
+// Enhanced styling for form elements
+:global {
+  .ms-DatePicker {
+    width: 100%;
+  }
+
+  .ms-TextField-wrapper {
+    width: 100%;
+  }
+
+  .ms-Dropdown {
+    width: 100%;
+  }
+}

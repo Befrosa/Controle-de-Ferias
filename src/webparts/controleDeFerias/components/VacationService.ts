@@ -18,12 +18,14 @@ export class VacationService {
   public async getVacations(): Promise<IVacation[]> {
     try {
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
-      const items = await list.items.select("Id", "Title", "DataInicio", "DataFim")();
+      const items = await list.items.select("Id", "Title", "DataInicio", "DataFim", "TipoFerias", "Observacoes")();
       return items.map(item => ({
         Id: item.Id,
         Title: item.Title,
         DataInicio: item.DataInicio ? new Date(item.DataInicio).toISOString().split('T')[0] : "",
-        DataFim: item.DataFim ? new Date(item.DataFim).toISOString().split('T')[0] : ""
+        DataFim: item.DataFim ? new Date(item.DataFim).toISOString().split('T')[0] : "",
+        TipoFerias: item.TipoFerias || "",
+        Observacoes: item.Observacoes || ""
       }));
     } catch (error) {
       console.error("Error fetching vacations:", error);

@@ -6,23 +6,11 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { useState, useEffect } from 'react';
+import { PrimaryButton } from '@fluentui/react';
 import { VacationService } from './VacationService';
 import { ITeamMember, IMonth, IVacationConflict } from './IMapaDeFeriasTypes';
-
-export default class ControleDeFerias extends React.Component<IControleDeFeriasProps> {
-  private _sp: SPFI;
-
-  constructor(props: IControleDeFeriasProps) {
-    super(props);
-    this._sp = spfi().using(SPFx(this.props.context));
-  }
-
-  public render(): React.ReactElement<IControleDeFeriasProps> {
-    return (
-      <ControleDeFeriasComponent sp={this._sp} />
-    );
-  }
-}
+import { VacationForm } from './forms/VacationForm';
+import { IVacationFormData } from './forms/IVacationFormTypes';
 
 const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props) => {
   // Dados dos membros do time e seus períodos de férias
@@ -32,6 +20,9 @@ const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props)
 
   // Estado para o ano selecionado
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+
+  // Estado para o formulário de férias
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
 
   // Instância do serviço
   const vacationService = new VacationService(props.sp);
@@ -132,6 +123,41 @@ const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props)
     setSelectedYear(selectedYear + 1);
   };
 
+  // Função para abrir o formulário de férias
+  const handleAddVacation = (): void => {
+    setIsFormOpen(true);
+  };
+
+  // Função para fechar o formulário de férias
+  const handleCloseForm = (): void => {
+    setIsFormOpen(false);
+  };
+
+  // Função para salvar os dados do formulário
+  const handleSaveVacation = async (formData: IVacationFormData): Promise<void> => {
+    try {
+      await vacationService.createVacation({
+        Title: formData.employeeName,
+        DataInicio: formData.startDate,
+        DataFim: formData.endDate,
+        TipoFerias: formData.vacationType,
+        Observacoes: formData.observations
+      });
+
+      // Recarregar os dados após salvar
+      const vacations = await vacationService.getVacations();
+      const members: ITeamMember[] = vacations.map(vacation => ({
+        name: vacation.Title,
+        start: vacation.DataInicio || undefined,
+        end: vacation.DataFim || undefined
+      }));
+      setTeamMembers(members);
+    } catch (error) {
+      console.error("Error saving vacation:", error);
+      throw error;
+    }
+  };
+
   // Gera os 12 meses do ano selecionado
   const getMonthsOfYear = (): IMonth[] => {
     const months: IMonth[] = [];
@@ -190,7 +216,7 @@ const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props)
 
   // Carregar dados do SharePoint
   useEffect(() => {
-    const loadVacations = async () => {
+    const loadVacations = async (): Promise<void> => {
       setIsLoading(true);
       setError(null);
       try {
@@ -209,7 +235,7 @@ const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props)
       }
     };
 
-    loadVacations();
+    loadVacations().catch((err) => console.error('Error loading vacations:', err));
   }, []);
 
   // Renderização condicional para o estado de carregamento
@@ -239,7 +265,17 @@ const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props)
       <div className={styles.instructions}>
         <p><strong>Como ler:</strong> Cada barra verde representa o período de férias de um membro. As datas estão indicadas nas barras.</p>
       </div>
-      
+
+      {/* Botão para adicionar férias */}
+      <div className={styles['add-vacation-section']}>
+        <PrimaryButton
+          text="+ Adicionar Férias"
+          onClick={handleAddVacation}
+          iconProps={{ iconName: 'Add' }}
+          className={styles['add-vacation-button']}
+        />
+      </div>
+
       {/* Controles de navegação por ano */}
       <div className={styles['year-navigation']}>
         <button className={styles['nav-button']} onClick={goToPreviousYear}>◀ Ano Anterior</button>
@@ -336,6 +372,29 @@ const ControleDeFeriasComponent: React.FunctionComponent<{ sp: SPFI }> = (props)
           </div>
         ))}
       </div>
+
+      {/* Formulário Modal de Férias */}
+      <VacationForm
+        sp={props.sp}
+        isOpen={isFormOpen}
+        onClose={handleCloseForm}
+        onSave={handleSaveVacation}
+      />
     </div>
   );
 };
+
+export default class ControleDeFerias extends React.Component<IControleDeFeriasProps> {
+  private _sp: SPFI;
+
+  constructor(props: IControleDeFeriasProps) {
+    super(props);
+    this._sp = spfi().using(SPFx(this.props.context));
+  }
+
+  public render(): React.ReactElement<IControleDeFeriasProps> {
+    return (
+      <ControleDeFeriasComponent sp={this._sp} />
+    );
+  }
+}
