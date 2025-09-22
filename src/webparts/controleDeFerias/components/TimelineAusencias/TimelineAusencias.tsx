@@ -55,6 +55,11 @@ const componentStyles = {
     color: '#666666',
     margin: '0'
   },
+  headerActions: {
+    display: 'flex',
+    gap: '12px',
+    alignItems: 'center'
+  },
   refreshButton: {
     width: '36px',
     height: '36px',
@@ -69,6 +74,21 @@ const componentStyles = {
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     color: '#8000FF'
+  },
+  addButton: {
+    width: '36px',
+    height: '36px',
+    minWidth: '36px',
+    padding: '0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    border: '1px solid #2ECC71',
+    borderRadius: '50%',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    color: '#2ECC71'
   },
   controlsRow: {
     display: 'flex',
@@ -116,7 +136,8 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
   legendaCustomizada,
   onRefresh,
   isLoading,
-  tipoOptionsFromSharePoint
+  tipoOptionsFromSharePoint,
+  onAddAusencia // Adicionando o handler
 }) => {
 
   // Estados locais para filtros e controles
@@ -124,7 +145,49 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
   const [filtroTipo, setFiltroTipo] = useState<string | 'todos'>('todos');
   const [filtroStatus, setFiltroStatus] = useState<StatusAusencia | 'todos'>('todos');
   const [buscaColaborador, setBuscaColaborador] = useState<string>('');
-  const [periodoAtual] = useState({ ano: anoSelecionado, mes: mesSelecionado });
+  const [anoAtual, setAnoAtual] = useState<number>(anoSelecionado || new Date().getFullYear());
+  const [mesAtual, setMesAtual] = useState<number>(mesSelecionado || new Date().getMonth());
+
+  // Navegação entre meses
+  const handleMesAnterior = useCallback(() => {
+    console.log('Navegando para o mês anterior');
+    setMesAtual(prevMes => {
+      if (prevMes === 0) {
+        setAnoAtual(prevAno => prevAno - 1);
+        return 11;
+      }
+      return prevMes - 1;
+    });
+  }, []);
+
+  const handleProximoMes = useCallback(() => {
+    console.log('Navegando para o próximo mês');
+    setMesAtual(prevMes => {
+      if (prevMes === 11) {
+        setAnoAtual(prevAno => prevAno + 1);
+        return 0;
+      }
+      return prevMes + 1;
+    });
+  }, []);
+
+  const handleMesAtual = useCallback(() => {
+    console.log('Voltando para o mês atual');
+    const hoje = new Date();
+    setAnoAtual(hoje.getFullYear());
+    setMesAtual(hoje.getMonth());
+  }, []);
+
+  // Obter nome do mês
+  const getNomeMes = useCallback((mesIndex: number): string => {
+    const meses = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    const nomeMes = meses[mesIndex];
+    console.log('Obtendo nome do mês para índice:', mesIndex, 'nome:', nomeMes);
+    return nomeMes;
+  }, []);
 
   // Dropdown options para tipos - usando os tipos do SharePoint se disponíveis
   const tipoOptions: IDropdownOption[] = useMemo(() => {
@@ -132,11 +195,13 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
     
     if (tipoOptionsFromSharePoint && tipoOptionsFromSharePoint.length > 0) {
       // Usar os tipos carregados do SharePoint
+      console.log('Usando opções de tipo do SharePoint:', tipoOptionsFromSharePoint);
       tipoOptionsFromSharePoint.forEach((option: {key: string, text: string}) => {
         options.push({ key: option.key, text: option.text });
       });
     } else {
       // Fallback para os tipos padrão
+      console.log('Usando opções de tipo padrão');
       options.push(
         { key: TipoAusencia.FERIAS_ANUAIS, text: TipoAusencia.FERIAS_ANUAIS },
         { key: TipoAusencia.LICENCA_MEDICA, text: TipoAusencia.LICENCA_MEDICA },
@@ -148,20 +213,56 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       );
     }
     
+    console.log('Opções de tipo geradas:', options);
     return options;
   }, [tipoOptionsFromSharePoint]);
 
   // Filtrar ausências baseado nos filtros ativos
   const ausenciasFiltradas = useMemo(() => {
+    console.log('Filtrando ausências. Ausências originais:', ausencias);
+    console.log('Filtros ativos - Ano:', anoAtual, 'Mês:', mesAtual, 'Tipo:', filtroTipo, 'Status:', filtroStatus, 'Busca:', buscaColaborador);
+    
     let filtered = ausencias.filter(ausencia => {
-      // Filtro por período
-      const dataAusencia = ausencia.dataInicio;
-      const anoAusencia = dataAusencia.getFullYear();
+      // Filtro por ano
+      const anoAusencia = ausencia.dataInicio.getFullYear();
+      if (anoAusencia !== anoAtual) return false;
 
-      if (anoAusencia !== periodoAtual.ano) return false;
+      // Filtro por mês - verificar se a ausência está no mês selecionado
+      const mesInicio = ausencia.dataInicio.getMonth();
+      const mesFim = ausencia.dataFim.getMonth();
+      const anoInicio = ausencia.dataInicio.getFullYear();
+      const anoFim = ausencia.dataFim.getFullYear();
+      
+      // Verificar se a ausência está ativa no mês/ano selecionado
+      let ausenciaNoMes = false;
+      
+      if (anoAtual === anoInicio && anoAtual === anoFim) {
+        // Mesmo ano de início e fim
+        ausenciaNoMes = mesInicio <= mesAtual && mesAtual <= mesFim;
+      } else if (anoAtual === anoInicio) {
+        // Ano selecionado é o ano de início
+        ausenciaNoMes = mesInicio <= mesAtual;
+      } else if (anoAtual === anoFim) {
+        // Ano selecionado é o ano de fim
+        ausenciaNoMes = mesAtual <= mesFim;
+      } else if (anoInicio < anoAtual && anoAtual < anoFim) {
+        // Ano selecionado está entre o início e o fim
+        ausenciaNoMes = true;
+      }
+      
+      if (!ausenciaNoMes) return false;
 
-      // Filtro por tipo
-      if (filtroTipo !== 'todos' && ausencia.tipo !== filtroTipo) return false;
+      // Filtro por tipo - corrigido para lidar com diferentes formatos de tipo
+      if (filtroTipo !== 'todos') {
+        // Converter ambos os valores para string e comparar de forma mais flexível
+        const tipoAusenciaStr = String(ausencia.tipo);
+        const filtroTipoStr = String(filtroTipo);
+        
+        // Comparação case-insensitive e tratando possíveis diferenças de formatação
+        if (tipoAusenciaStr.toLowerCase().trim() !== filtroTipoStr.toLowerCase().trim()) {
+          return false;
+        }
+      }
 
       // Filtro por status
       if (filtroStatus !== 'todos' && ausencia.status !== filtroStatus) return false;
@@ -174,8 +275,9 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       return true;
     });
 
+    console.log('Ausências filtradas:', filtered);
     return filtered;
-  }, [ausencias, filtroTipo, filtroStatus, buscaColaborador, periodoAtual]);
+  }, [ausencias, anoAtual, mesAtual, filtroTipo, filtroStatus, buscaColaborador]);
 
   // Agrupar ausências por colaborador (versão simplificada)
   const ausenciasPorColaborador = useMemo(() => {
@@ -205,6 +307,7 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
 
   // Função para detectar conflitos de férias
   const detectarConflitos = useMemo(() => {
+    console.log('Detectando conflitos nas ausências filtradas:', ausenciasFiltradas);
     const conflicts: IVacationConflict[] = [];
 
     for (let i = 0; i < ausenciasFiltradas.length; i++) {
@@ -238,6 +341,7 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       }
     }
 
+    console.log('Conflitos detectados:', conflicts);
     return conflicts;
   }, [ausenciasFiltradas]);
 
@@ -264,11 +368,13 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       };
     });
 
+    console.log('Dados do gráfico por mês:', dadosMes);
     return dadosMes;
   }, [ausenciasFiltradas]);
 
   // Handler para clique em ausência
   const handleAusenciaClick = useCallback((ausencia: IAusencia) => {
+    console.log('Clicou na ausência no TimelineAusencias:', ausencia);
     if (onAusenciaClick) {
       onAusenciaClick(ausencia);
     }
@@ -284,25 +390,86 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
 
   return (
     <div className={styles.timelineContainer} style={componentStyles.container}>
-      {/* Header da Web Part com botão de refresh integrado */}
+      {/* Header da Web Part com botões de ação integrados */}
       <div style={componentStyles.header}>
         <div style={componentStyles.headerText}>
           <h2 style={componentStyles.headerTitle}>
-            Timeline de Ausências
+            Timeline de Ausências - {getNomeMes(mesAtual)} {anoAtual}
           </h2>
           <p style={componentStyles.headerSubtitle}>
             Visualização moderna das ausências da equipe
           </p>
         </div>
-        <button 
-          style={componentStyles.refreshButton}
-          onClick={onRefresh}
-          disabled={isLoading}
-          title="Atualizar dados"
-          aria-label="Atualizar dados"
-        >
-          <Icon iconName={isLoading ? "ProgressLoopInner" : "Refresh"} style={{ fontSize: '16px' }} />
-        </button>
+        <div style={componentStyles.headerActions}>
+          {/* Controles de navegação entre meses */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
+            <button 
+              style={{
+                ...componentStyles.refreshButton,
+                width: '32px',
+                height: '32px',
+                minWidth: '32px'
+              }}
+              onClick={handleMesAnterior}
+              title="Mês anterior"
+              aria-label="Mês anterior"
+            >
+              <Icon iconName="ChevronLeft" style={{ fontSize: '14px' }} />
+            </button>
+            
+            <button 
+              style={{
+                backgroundColor: 'transparent',
+                border: 'none',
+                color: '#8000FF',
+                fontWeight: '600',
+                cursor: 'pointer',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                transition: 'background-color 0.3s ease'
+              }}
+              onClick={handleMesAtual}
+              title="Mês atual"
+            >
+              Hoje
+            </button>
+            
+            <button 
+              style={{
+                ...componentStyles.refreshButton,
+                width: '32px',
+                height: '32px',
+                minWidth: '32px'
+              }}
+              onClick={handleProximoMes}
+              title="Próximo mês"
+              aria-label="Próximo mês"
+            >
+              <Icon iconName="ChevronRight" style={{ fontSize: '14px' }} />
+            </button>
+          </div>
+          
+          {/* Botão de adicionar ausência */}
+          <button 
+            style={componentStyles.addButton}
+            onClick={onAddAusencia}
+            title="Adicionar férias"
+            aria-label="Adicionar férias"
+          >
+            <Icon iconName="Add" style={{ fontSize: '16px' }} />
+          </button>
+          
+          {/* Botão de refresh */}
+          <button 
+            style={componentStyles.refreshButton}
+            onClick={onRefresh}
+            disabled={isLoading}
+            title="Atualizar dados"
+            aria-label="Atualizar dados"
+          >
+            <Icon iconName={isLoading ? "ProgressLoopInner" : "Refresh"} style={{ fontSize: '16px' }} />
+          </button>
+        </div>
       </div>
 
       {/* Controles de filtros */}

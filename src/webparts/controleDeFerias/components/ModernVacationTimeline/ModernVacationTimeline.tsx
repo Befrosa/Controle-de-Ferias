@@ -69,6 +69,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
   anoInicial = new Date().getFullYear(),
   mesInicial = new Date().getMonth()
 }) => {
+  console.log('Inicializando ModernVacationTimeline com props:', { sp, useMockData, anoInicial, mesInicial });
 
   // Estados do componente
   const [ausencias, setAusencias] = useState<IAusencia[]>([]);
@@ -82,6 +83,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
 
   // Serviço para comunicação com SharePoint
   const vacationService = React.useMemo(() => new VacationService(sp), [sp]);
+  console.log('VacationService criado:', vacationService);
 
   /**
    * Carrega dados de ausências do SharePoint ou usa dados mock
@@ -139,9 +141,19 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
   }, [vacationService, useMockData]);
 
   /**
+   * Handler para abrir o formulário de nova ausência
+   */
+  const handleAddAusencia = useCallback(() => {
+    console.log('Abrindo formulário para nova ausência');
+    setSelectedAusencia(undefined);
+    setShowForm(true);
+  }, []);
+
+  /**
    * Effect para carregar dados iniciais
    */
   useEffect(() => {
+    console.log('Effect para carregar dados iniciais');
     carregarAusencias().catch(err => {
       console.error('Erro no carregamento inicial:', err);
     });
@@ -151,6 +163,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
    * Handler para clique em ausência
    */
   const handleAusenciaClick = useCallback((ausencia: IAusencia) => {
+    console.log('Clicou na ausência:', ausencia);
     setSelectedAusencia(ausencia);
     setShowForm(true);
   }, []);
@@ -161,14 +174,26 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
   const handleSaveAusencia = useCallback(async (formData: any) => {
     try {
       if (!useMockData) {
-        // Salvar no SharePoint
-        await vacationService.createVacation({
-          Title: formData.employeeName,
-          DataInicio: formData.startDate,
-          DataFim: formData.endDate,
-          TipoFerias: formData.vacationType,
-          Observacoes: formData.observations || ''
-        });
+        // Verificar se é uma edição (tem sharePointId) ou criação
+        if (selectedAusencia && selectedAusencia.sharePointId) {
+          // Atualizar item existente
+          await vacationService.updateVacation(selectedAusencia.sharePointId, {
+            DataInicio: formData.startDate,
+            DataFim: formData.endDate,
+            TipoFerias: formData.vacationType,
+            Observacoes: formData.observations || '',
+            ColaboradorId: formData.employeeId // Passar o ID do colaborador
+          });
+        } else {
+          // Criar novo item
+          await vacationService.createVacation({
+            DataInicio: formData.startDate,
+            DataFim: formData.endDate,
+            TipoFerias: formData.vacationType,
+            Observacoes: formData.observations || '',
+            ColaboradorId: formData.employeeId // Passar o ID do colaborador
+          });
+        }
       }
 
       // Recarregar dados após salvar
@@ -180,12 +205,13 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
       console.error('Erro ao salvar ausência:', err);
       throw new Error('Erro ao salvar ausência. Tente novamente.');
     }
-  }, [vacationService, useMockData, carregarAusencias]);
+  }, [vacationService, useMockData, carregarAusencias, selectedAusencia]);
 
   /**
    * Handler para fechar formulário
    */
   const handleCloseForm = useCallback(() => {
+    console.log('Fechando formulário');
     setShowForm(false);
     setSelectedAusencia(undefined);
   }, []);
@@ -194,6 +220,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
    * Handler para refresh manual
    */
   const handleRefresh = useCallback(() => {
+    console.log('Atualizando dados manualmente');
     carregarAusencias().catch(err => {
       console.error('Erro no refresh:', err);
     });
@@ -244,7 +271,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
 
     return (
       <>
-        {/* Ações do header - removido o botão de atualizar dados daqui */}
+        {/* Ações do header - removendo o botão de adicionar férias e mantendo apenas mensagem de modo demo */}
         <div style={inlineStyles.headerActions}>
           {useMockData && (
             <MessageBar messageBarType={MessageBarType.info} style={{ marginRight: 'auto', maxWidth: '400px' }}>
@@ -253,7 +280,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
           )}
         </div>
 
-        {/* Componente principal Timeline - passando o handler de refresh */}
+        {/* Componente principal Timeline - passando os handlers */}
         <TimelineAusencias
           ausencias={ausencias}
           visualizacao="mensal"
@@ -266,6 +293,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
           onRefresh={handleRefresh}
           isLoading={isLoading}
           tipoOptionsFromSharePoint={tipoOptions}
+          onAddAusencia={handleAddAusencia}
         />
 
         {/* Informações de debug/status */}

@@ -3,7 +3,6 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import "@pnp/sp/fields";
-import { IVacation } from "./IVacation";
 
 export class VacationService {
   private _sp: SPFI;
@@ -16,17 +15,26 @@ export class VacationService {
    * Fetches all vacation records from the "Controle de ferias" list.
    * @returns A promise that resolves to an array of vacation objects.
    */
-  public async getVacations(): Promise<IVacation[]> {
+  public async getVacations(): Promise<any[]> {
     try {
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
-      const items = await list.items.select("Id", "Title", "DataInicio", "DataFim", "TipoFerias", "Observacoes")();
+      // Ajustado para usar o campo Colaborador do tipo People Picker
+      const items = await list.items
+        .select("Id", "Colaborador/Id", "Colaborador/Title", "Colaborador/EMail", "DataInicio", "DataFim", "TipoFerias", "Observacoes")
+        .expand("Colaborador")();
+      
+      // Retornar os dados no formato esperado pela função converterDadosSharePoint
       return items.map(item => ({
         Id: item.Id,
-        Title: item.Title,
-        DataInicio: item.DataInicio ? new Date(item.DataInicio).toISOString().split('T')[0] : "",
-        DataFim: item.DataFim ? new Date(item.DataFim).toISOString().split('T')[0] : "",
-        TipoFerias: item.TipoFerias || "",
-        Observacoes: item.Observacoes || ""
+        Colaborador: item.Colaborador ? {
+          Id: item.Colaborador.Id,
+          Title: item.Colaborador.Title,
+          EMail: item.Colaborador.EMail
+        } : null,
+        DataInicio: item.DataInicio,
+        DataFim: item.DataFim,
+        TipoFerias: item.TipoFerias,
+        Observacoes: item.Observacoes
       }));
     } catch (error) {
       console.error("Error fetching vacations:", error);
@@ -39,10 +47,26 @@ export class VacationService {
    * @param data - An object containing the new vacation data.
    * @returns A promise that resolves when the creation is complete.
    */
-  public async createVacation(data: Partial<IVacation>): Promise<void> {
+  public async createVacation(data: any): Promise<void> {
     try {
+      console.log('Criando férias com dados:', data);
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
-      await list.items.add(data);
+      
+      // Preparar dados para o campo People Picker
+      const itemData: any = {
+        DataInicio: data.DataInicio,
+        DataFim: data.DataFim,
+        TipoFerias: data.TipoFerias,
+        Observacoes: data.Observacoes || ''
+      };
+      
+      // Adicionar o colaborador se o ID estiver disponível
+      if (data.ColaboradorId) {
+        itemData.ColaboradorId = data.ColaboradorId;
+      }
+      
+      console.log('Dados a serem salvos:', itemData);
+      await list.items.add(itemData);
     } catch (error) {
       console.error("Error creating vacation item:", error);
       throw error;
@@ -55,10 +79,26 @@ export class VacationService {
    * @param data - An object containing the fields to update.
    * @returns A promise that resolves when the update is complete.
    */
-  public async updateVacation(itemId: number, data: Partial<IVacation>): Promise<void> {
+  public async updateVacation(itemId: number, data: any): Promise<void> {
     try {
+      console.log('Atualizando férias com ID:', itemId, 'e dados:', data);
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
-      await list.items.getById(itemId).update(data);
+      
+      // Preparar dados para atualização
+      const itemData: any = {
+        DataInicio: data.DataInicio,
+        DataFim: data.DataFim,
+        TipoFerias: data.TipoFerias,
+        Observacoes: data.Observacoes || ''
+      };
+      
+      // Atualizar o colaborador se o ID estiver disponível
+      if (data.ColaboradorId) {
+        itemData.ColaboradorId = data.ColaboradorId;
+      }
+      
+      console.log('Dados a serem atualizados:', itemData);
+      await list.items.getById(itemId).update(itemData);
     } catch (error) {
       console.error(`Error updating vacation item ${itemId}:`, error);
       throw error;
@@ -72,6 +112,7 @@ export class VacationService {
    */
   public async deleteVacation(itemId: number): Promise<void> {
     try {
+      console.log('Deletando item com ID:', itemId);
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
       await list.items.getById(itemId).delete();
     } catch (error) {
@@ -88,6 +129,8 @@ export class VacationService {
     try {
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
       const field = await list.fields.getByInternalNameOrTitle("TipoFerias")();
+
+      console.log('Campo TipoFerias:', field);
 
       if (field && field.Choices && field.Choices.length > 0) {
         console.log('Loaded vacation type options from SharePoint:', field.Choices);
@@ -107,6 +150,7 @@ export class VacationService {
   }
 
   private getDefaultVacationTypes(): Array<{key: string, text: string}> {
+    console.log('Obtendo tipos de férias padrão');
     return [
       { key: 'Férias anuais', text: 'Férias anuais' },
       { key: 'Licença médica', text: 'Licença médica' },

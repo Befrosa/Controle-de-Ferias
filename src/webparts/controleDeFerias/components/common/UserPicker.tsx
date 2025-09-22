@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { Dropdown, IDropdownOption, SearchBox, Spinner, SpinnerSize } from '@fluentui/react';
+import { ComboBox, IComboBoxOption, IComboBox, Spinner, SpinnerSize } from '@fluentui/react';
 import { UserService } from '../UserService';
 import { IUserInfo } from '../forms/IVacationFormTypes';
 import { SPFI } from '@pnp/sp';
@@ -37,6 +37,7 @@ export const UserPicker: React.FunctionComponent<IUserPickerProps> = ({
     setIsLoading(true);
     try {
       const usersList = await userService.getUsers();
+      console.log('Usuários carregados:', usersList);
       setUsers(usersList);
       setFilteredUsers(usersList);
     } catch (error) {
@@ -56,30 +57,47 @@ export const UserPicker: React.FunctionComponent<IUserPickerProps> = ({
     } else {
       const filtered = users.filter(user =>
         user.displayName.toLowerCase().indexOf(searchText.toLowerCase()) !== -1 ||
-        user.email.toLowerCase().indexOf(searchText.toLowerCase()) !== -1
+        user.email.toLowerCase().indexOf(searchText.toLowerCase()) !== -1 ||
+        (user.jobTitle && user.jobTitle.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) ||
+        (user.department && user.department.toLowerCase().indexOf(searchText.toLowerCase()) !== -1)
       );
       setFilteredUsers(filtered);
     }
+    
+    console.log('Texto de busca:', searchText);
+    console.log('Usuários filtrados:', filteredUsers);
   }, [searchText, users]);
 
-  const dropdownOptions: IDropdownOption[] = filteredUsers.map(user => ({
+  const comboBoxOptions: IComboBoxOption[] = filteredUsers.map(user => ({
     key: user.id,
     text: user.displayName,
     data: user
   }));
+  
+  console.log('Opções do ComboBox:', comboBoxOptions);
 
-  const handleSelectionChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+  const handleSelectionChange = (event: React.FormEvent<IComboBox>, option?: IComboBoxOption): void => {
     if (option) {
       setSelectedKey(option.key as string);
       onUserSelected(option.data as IUserInfo);
+      
+      // Log das informações do usuário selecionado
+      const selectedUser = option.data as IUserInfo;
+      console.log('=== INFORMAÇÕES DO USUÁRIO SELECIONADO ===');
+      console.log('ID:', selectedUser.id);
+      console.log('Nome:', selectedUser.displayName);
+      console.log('E-mail:', selectedUser.email);
+      console.log('Cargo:', selectedUser.jobTitle || 'Não informado');
+      console.log('Departamento:', selectedUser.department || 'Não informado');
+      console.log('========================================');
     } else {
       setSelectedKey(undefined);
       onUserSelected(undefined);
     }
   };
 
-  const handleSearch = (event?: React.ChangeEvent<HTMLInputElement>, newValue?: string): void => {
-    setSearchText(newValue || '');
+  const handleInputValueChange = (inputValue?: string): void => {
+    setSearchText(inputValue || '');
   };
 
   if (isLoading) {
@@ -104,22 +122,16 @@ export const UserPicker: React.FunctionComponent<IUserPickerProps> = ({
         {required && <span className={styles.required}> *</span>}
       </label>
 
-      <div className={styles.searchContainer}>
-        <SearchBox
-          placeholder="Pesquisar por nome ou email..."
-          value={searchText}
-          onChange={handleSearch}
-          className={styles.searchBox}
-        />
-      </div>
-
-      <Dropdown
+      <ComboBox
         placeholder={placeholder}
-        options={dropdownOptions}
+        options={comboBoxOptions}
         selectedKey={selectedKey}
         onChange={handleSelectionChange}
+        onInputValueChange={handleInputValueChange}
         className={styles.dropdown}
         errorMessage={errorMessage}
+        allowFreeform={false}
+        autoComplete="on"
       />
 
       {filteredUsers.length === 0 && searchText.trim() !== '' && (

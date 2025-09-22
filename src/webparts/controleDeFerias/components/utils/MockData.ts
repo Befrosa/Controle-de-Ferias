@@ -101,7 +101,8 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
         observacoes: i === 0 ? 'Férias de verão' : 'Férias de fim de ano',
         aprovadoPor: 'Maria Gerente',
         dataSolicitacao: new Date(dataInicio.getTime() - (30 * 24 * 60 * 60 * 1000)),
-        diasTotais: calcularDiasUteis(dataInicio, dataFim)
+        diasTotais: calcularDiasUteis(dataInicio, dataFim),
+        sharePointId: idCounter // Adicionando o ID do SharePoint
       });
     }
 
@@ -163,7 +164,8 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
         observacoes,
         aprovadoPor: status === StatusAusencia.APROVADO ? 'Maria Gerente' : undefined,
         dataSolicitacao: new Date(dataInicio.getTime() - (7 * 24 * 60 * 60 * 1000)),
-        diasTotais: calcularDiasUteis(dataInicio, dataFim)
+        diasTotais: calcularDiasUteis(dataInicio, dataFim),
+        sharePointId: idCounter // Adicionando o ID do SharePoint
       });
     }
   });
@@ -186,7 +188,8 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
     observacoes: 'Licença maternidade - nascimento do primeiro filho',
     aprovadoPor: 'RH - Elena Costa',
     dataSolicitacao: new Date(inicioMaternidade.getTime() - (60 * 24 * 60 * 60 * 1000)),
-    diasTotais: calcularDiasUteis(inicioMaternidade, fimMaternidade)
+    diasTotais: calcularDiasUteis(inicioMaternidade, fimMaternidade),
+    sharePointId: idCounter // Adicionando o ID do SharePoint
   });
 
   // Licença paternidade
@@ -205,7 +208,8 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
     observacoes: 'Licença paternidade',
     aprovadoPor: 'RH - Elena Costa',
     dataSolicitacao: new Date(inicioPaternidade.getTime() - (15 * 24 * 60 * 60 * 1000)),
-    diasTotais: calcularDiasUteis(inicioPaternidade, fimPaternidade)
+    diasTotais: calcularDiasUteis(inicioPaternidade, fimPaternidade),
+    sharePointId: idCounter // Adicionando o ID do SharePoint
   });
 
   // Ordenar por data de início
@@ -222,23 +226,22 @@ export const AUSENCIAS_MOCK = gerarAusenciasMock(2024);
  */
 export const converterDadosSharePoint = (dadosSharePoint: any[]): IAusencia[] => {
   return dadosSharePoint.map((item, index) => {
-    // Encontrar colaborador ou criar um novo
-    let colaborador: IColaborador | undefined;
-    for (let i = 0; i < COLABORADORES_MOCK.length; i++) {
-      if (COLABORADORES_MOCK[i].nome === item.Title) {
-        colaborador = COLABORADORES_MOCK[i];
-        break;
-      }
-    }
-
-    if (!colaborador) {
-      colaborador = {
-        id: `sp-user-${index}`,
-        nome: item.Title || 'Usuário Desconhecido',
-        email: `${(item.Title || 'usuario').toLowerCase().replace(' ', '.')}@empresa.com`,
-        departamento: 'Não informado'
-      };
-    }
+    console.log("DADOS SHAREPOINT",item.Colaborador)
+    // Utilizar dados reais do campo Colaborador (People Picker)
+    const colaborador: IColaborador = {
+      id: item.Colaborador?.Id ? `sp-user-${item.Colaborador.Id}` : `sp-item-${item.Id || index}`,
+      nome: item.Colaborador?.Title || 'Usuário Desconhecido',
+      email: item.Colaborador?.EMail || 'email.nao.informado@empresa.com',
+      // departamento: 'Não informado'
+    };
+    
+    // Registrar informações do colaborador no console
+    console.log('=== DADOS DO COLABORADOR REAL ===');
+    console.log('Nome:', colaborador.nome);
+    console.log('Email:', colaborador.email);
+    console.log('Departamento:', colaborador.departamento);
+    console.log('ID:', colaborador.id);
+    console.log('============================');
 
     // Mapear tipo de férias
     let tipo: TipoAusencia;
@@ -289,7 +292,8 @@ export const converterDadosSharePoint = (dadosSharePoint: any[]): IAusencia[] =>
       dataFim,
       observacoes: item.Observacoes || '',
       dataSolicitacao: dataInicio, // Usar data de início como fallback
-      diasTotais: calcularDiasUteis(dataInicio, dataFim)
+      diasTotais: calcularDiasUteis(dataInicio, dataFim),
+      sharePointId: item.Id // Adicionando o ID do SharePoint
     };
   });
 };

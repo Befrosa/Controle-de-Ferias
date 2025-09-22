@@ -10,7 +10,8 @@ import {
   MessageBar,
   MessageBarType,
   Spinner,
-  SpinnerSize
+  SpinnerSize,
+  Text
 } from '@fluentui/react';
 import { BaseModal } from '../modals/BaseModal';
 import { UserPicker } from '../common/UserPicker';
@@ -60,6 +61,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
       setIsLoadingTypes(true);
       try {
         const types = await vacationService.getVacationTypeOptions();
+        console.log('Tipos de férias carregados:', types);
         // Converter para o formato IDropdownOption
         const dropdownOptions: IDropdownOption[] = types.map(type => ({
           key: type.key,
@@ -142,6 +144,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
     }
 
     setErrors(newErrors);
+    console.log('Erros de validação:', newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -156,10 +159,13 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
     setSubmitMessage('');
 
     try {
-      const dataToSave: IVacationFormData = {
+      const dataToSave: any = {
         ...formData,
-        employeeName: selectedUser!.displayName
+        employeeName: selectedUser!.displayName,
+        employeeId: selectedUser!.id // Adicionar o ID do colaborador
       };
+      
+      console.log('Dados a serem salvos:', dataToSave);
 
       await onSave(dataToSave);
 
@@ -179,6 +185,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
   };
 
   const handleCancel = (): void => {
+    console.log('Cancelando formulário');
     setFormData({
       employeeName: '',
       startDate: '',
@@ -258,6 +265,21 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
             required={true}
             errorMessage={errors.employeeName}
           />
+          
+          {/* Mostrar informações adicionais do usuário selecionado */}
+          {selectedUser && (
+            <div style={{ marginTop: '4px' }}>
+              <Text variant="small" styles={{ root: { color: '#666666' } }}>
+                {selectedUser.email}
+                {selectedUser.jobTitle && (
+                  <span> • {selectedUser.jobTitle}</span>
+                )}
+                {selectedUser.department && (
+                  <span> • {selectedUser.department}</span>
+                )}
+              </Text>
+            </div>
+          )}
         </div>
 
         <div className={styles.formRow}>

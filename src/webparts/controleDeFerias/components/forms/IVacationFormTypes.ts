@@ -18,6 +18,8 @@ export interface IUserInfo {
   id: string;
   displayName: string;
   email: string;
+  jobTitle?: string;
+  department?: string;
 }
 
 export interface IVacationTypeOption {

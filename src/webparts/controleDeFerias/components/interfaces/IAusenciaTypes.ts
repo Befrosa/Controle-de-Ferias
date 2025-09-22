@@ -45,6 +45,7 @@ export interface IAusencia {
   aprovadoPor?: string;
   dataSolicitacao: Date;
   diasTotais: number;
+  sharePointId?: number; // Adicionando o ID do item do SharePoint
 }
 
 /**
@@ -106,4 +107,5 @@ export interface ITimelineAusenciasProps {
   onRefresh?: () => void;
   isLoading?: boolean;
   tipoOptionsFromSharePoint?: Array<{key: string, text: string}>;
+  onAddAusencia?: () => void; // Adicionando o handler para adicionar ausência
 }
