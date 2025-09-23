@@ -16,6 +16,14 @@ import { converterDadosSharePoint, AUSENCIAS_MOCK } from '../utils/MockData';
 import { inicializarCoresDinamicas, gerarLegendaDinamica } from '../utils/ColorMapping';
 import styles from './ModernVacationTimeline.module.scss';
 
+// Função para formatar data sem problemas de fuso horário
+const formatDateToLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const day = ('0' + date.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+};
+
 /**
  * Props do componente integrador
  */
@@ -336,8 +344,8 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
           onSave={handleSaveAusencia}
           initialData={selectedAusencia ? {
             employeeName: selectedAusencia.colaborador.nome,
-            startDate: selectedAusencia.dataInicio.toISOString().split('T')[0],
-            endDate: selectedAusencia.dataFim.toISOString().split('T')[0],
+            startDate: formatDateToLocal(selectedAusencia.dataInicio),
+            endDate: formatDateToLocal(selectedAusencia.dataFim),
             vacationType: selectedAusencia.tipo,
             observations: selectedAusencia.observacoes || '',
             squad: selectedAusencia.colaborador.squad || ''

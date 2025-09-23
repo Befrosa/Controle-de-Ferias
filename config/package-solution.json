@@ -3,7 +3,7 @@
   "solution": {
     "name": "controle-de-ferias-client-side-solution",
     "id": "2f1cdbd4-3c6d-49bb-bde2-0095776dd992",
-    "version": "1.0.0.0",
+    "version": "1.0.0.1",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

@@ -28,6 +28,21 @@ export interface IVacationFormComponentProps extends IVacationFormProps {
   sp: SPFI;
 }
 
+// Função para formatar data sem problemas de fuso horário
+const formatDateToLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = ('0' + (date.getMonth() + 1)).slice(-2);
+  const day = ('0' + date.getDate()).slice(-2);
+  return `${year}-${month}-${day}`;
+};
+
+// Função para converter string de data para Date object sem problemas de fuso horário
+const parseLocalDate = (dateString: string): Date | undefined => {
+  if (!dateString) return undefined;
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day); // month - 1 porque Date usa 0-based months
+};
+
 export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> = ({
   isOpen,
   onClose,
@@ -63,7 +78,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
     const loadOptions = async () => {
       setIsLoadingTypes(true);
       setIsLoadingSquads(true);
-      
+
       try {
         // Carregar tipos de férias
         const types = await vacationService.getVacationTypeOptions();
@@ -192,7 +207,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
         employeeName: selectedUser!.displayName,
         employeeId: selectedUser!.id // Adicionar o ID do colaborador
       };
-      
+
       console.log('Dados a serem salvos:', dataToSave);
 
       await onSave(dataToSave);
@@ -239,7 +254,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
   };
 
   const handleStartDateChange = (date: Date | null | undefined): void => {
-    const dateString = date ? date.toISOString().split('T')[0] : '';
+    const dateString = date ? formatDateToLocal(date) : '';
     setFormData(prev => ({ ...prev, startDate: dateString }));
     if (errors.startDate) {
       setErrors(prev => ({ ...prev, startDate: '' }));
@@ -247,7 +262,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
   };
 
   const handleEndDateChange = (date: Date | null | undefined): void => {
-    const dateString = date ? date.toISOString().split('T')[0] : '';
+    const dateString = date ? formatDateToLocal(date) : '';
     setFormData(prev => ({ ...prev, endDate: dateString }));
     if (errors.endDate) {
       setErrors(prev => ({ ...prev, endDate: '' }));
@@ -299,7 +314,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
             required={true}
             errorMessage={errors.employeeName}
           />
-          
+
           {/* Mostrar informações adicionais do usuário selecionado */}
           {selectedUser && (
             <div style={{ marginTop: '4px' }}>
@@ -320,7 +335,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
           <div className={styles.formField}>
             <DatePicker
               label="Data de Início"
-              value={formData.startDate ? new Date(formData.startDate) : undefined}
+              value={parseLocalDate(formData.startDate)}
               onSelectDate={handleStartDateChange}
               placeholder="Selecione a data de início"
               isRequired={true}
@@ -353,7 +368,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
           <div className={styles.formField}>
             <DatePicker
               label="Data de Fim"
-              value={formData.endDate ? new Date(formData.endDate) : undefined}
+              value={parseLocalDate(formData.endDate)}
               onSelectDate={handleEndDateChange}
               placeholder="Selecione a data de fim"
               isRequired={true}
