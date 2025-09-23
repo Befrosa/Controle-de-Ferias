@@ -12,7 +12,7 @@ import {
   MessageBar,
   MessageBarType
 } from '@fluentui/react';
-import { ITimelineAusenciasProps, IAusencia, TipoAusencia, StatusAusencia, IVacationConflict } from '../interfaces/IAusenciaTypes';
+import { ITimelineAusenciasProps, IAusencia, StatusAusencia, IVacationConflict } from '../interfaces/IAusenciaTypes';
 import { IndicadorAusencia } from '../IndicadorAusencia/IndicadorAusencia';
 import { CORES_LEGENDA } from '../utils/ColorMapping';
 import styles from './TimelineAusencias.module.scss';
@@ -136,14 +136,13 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
   legendaCustomizada,
   onRefresh,
   isLoading,
-  tipoOptionsFromSharePoint,
+  squadOptionsFromSharePoint,
   onAddAusencia // Adicionando o handler
 }) => {
 
   // Estados locais para filtros e controles
   const [modoVisualizacao, setModoVisualizacao] = useState<'timeline' | 'grafico'>('timeline');
-  const [filtroTipo, setFiltroTipo] = useState<string | 'todos'>('todos');
-  const [filtroStatus, setFiltroStatus] = useState<StatusAusencia | 'todos'>('todos');
+  const [filtroSquad, setFiltroSquad] = useState<string | 'todos'>('todos');
   const [buscaColaborador, setBuscaColaborador] = useState<string>('');
   const [anoAtual, setAnoAtual] = useState<number>(anoSelecionado || new Date().getFullYear());
   const [mesAtual, setMesAtual] = useState<number>(mesSelecionado || new Date().getMonth());
@@ -189,39 +188,36 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
     return nomeMes;
   }, []);
 
-  // Dropdown options para tipos - usando os tipos do SharePoint se disponíveis
-  const tipoOptions: IDropdownOption[] = useMemo(() => {
-    const options: IDropdownOption[] = [{ key: 'todos', text: 'Todos os tipos' }];
-    
-    if (tipoOptionsFromSharePoint && tipoOptionsFromSharePoint.length > 0) {
-      // Usar os tipos carregados do SharePoint
-      console.log('Usando opções de tipo do SharePoint:', tipoOptionsFromSharePoint);
-      tipoOptionsFromSharePoint.forEach((option: {key: string, text: string}) => {
+  // Dropdown options para squad - usando as opções do SharePoint se disponíveis
+  const squadOptions: IDropdownOption[] = useMemo(() => {
+    const options: IDropdownOption[] = [{ key: 'todos', text: 'Todos os squads' }];
+
+    if (squadOptionsFromSharePoint && squadOptionsFromSharePoint.length > 0) {
+      // Usar as opções carregadas do SharePoint
+      console.log('Usando opções de squad do SharePoint:', squadOptionsFromSharePoint);
+      squadOptionsFromSharePoint.forEach((option: { key: string, text: string }) => {
         options.push({ key: option.key, text: option.text });
       });
     } else {
-      // Fallback para os tipos padrão
-      console.log('Usando opções de tipo padrão');
+      // Fallback para opções padrão
+      console.log('Usando opções de squad padrão');
       options.push(
-        { key: TipoAusencia.FERIAS_ANUAIS, text: TipoAusencia.FERIAS_ANUAIS },
-        { key: TipoAusencia.LICENCA_MEDICA, text: TipoAusencia.LICENCA_MEDICA },
-        { key: TipoAusencia.LICENCA_MATERNIDADE, text: TipoAusencia.LICENCA_MATERNIDADE },
-        { key: TipoAusencia.LICENCA_PATERNIDADE, text: TipoAusencia.LICENCA_PATERNIDADE },
-        { key: TipoAusencia.FOLGA_COMPENSATORIA, text: TipoAusencia.FOLGA_COMPENSATORIA },
-        { key: TipoAusencia.AUSENCIA_JUSTIFICADA, text: TipoAusencia.AUSENCIA_JUSTIFICADA },
-        { key: TipoAusencia.OUTROS, text: TipoAusencia.OUTROS }
+        { key: 'Squad A', text: 'Squad A' },
+        { key: 'Squad B', text: 'Squad B' },
+        { key: 'Squad C', text: 'Squad C' },
+        { key: 'Squad D', text: 'Squad D' }
       );
     }
-    
-    console.log('Opções de tipo geradas:', options);
+
+    console.log('Opções de squad geradas:', options);
     return options;
-  }, [tipoOptionsFromSharePoint]);
+  }, [squadOptionsFromSharePoint]);
 
   // Filtrar ausências baseado nos filtros ativos
   const ausenciasFiltradas = useMemo(() => {
     console.log('Filtrando ausências. Ausências originais:', ausencias);
-    console.log('Filtros ativos - Ano:', anoAtual, 'Mês:', mesAtual, 'Tipo:', filtroTipo, 'Status:', filtroStatus, 'Busca:', buscaColaborador);
-    
+    console.log('Filtros ativos - Ano:', anoAtual, 'Mês:', mesAtual, 'Squad:', filtroSquad, 'Busca:', buscaColaborador);
+
     let filtered = ausencias.filter(ausencia => {
       // Filtro por ano
       const anoAusencia = ausencia.dataInicio.getFullYear();
@@ -232,10 +228,10 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       const mesFim = ausencia.dataFim.getMonth();
       const anoInicio = ausencia.dataInicio.getFullYear();
       const anoFim = ausencia.dataFim.getFullYear();
-      
+
       // Verificar se a ausência está ativa no mês/ano selecionado
       let ausenciaNoMes = false;
-      
+
       if (anoAtual === anoInicio && anoAtual === anoFim) {
         // Mesmo ano de início e fim
         ausenciaNoMes = mesInicio <= mesAtual && mesAtual <= mesFim;
@@ -249,23 +245,17 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
         // Ano selecionado está entre o início e o fim
         ausenciaNoMes = true;
       }
-      
+
       if (!ausenciaNoMes) return false;
 
-      // Filtro por tipo - corrigido para lidar com diferentes formatos de tipo
-      if (filtroTipo !== 'todos') {
-        // Converter ambos os valores para string e comparar de forma mais flexível
-        const tipoAusenciaStr = String(ausencia.tipo);
-        const filtroTipoStr = String(filtroTipo);
-        
-        // Comparação case-insensitive e tratando possíveis diferenças de formatação
-        if (tipoAusenciaStr.toLowerCase().trim() !== filtroTipoStr.toLowerCase().trim()) {
+      // Filtro por squad
+      if (filtroSquad !== 'todos') {
+        // Verificar se o colaborador tem squad definido e se corresponde ao filtro
+        const squadColaborador = ausencia.colaborador.squad;
+        if (!squadColaborador || squadColaborador.toLowerCase().trim() !== filtroSquad.toLowerCase().trim()) {
           return false;
         }
       }
-
-      // Filtro por status
-      if (filtroStatus !== 'todos' && ausencia.status !== filtroStatus) return false;
 
       // Filtro por colaborador
       if (buscaColaborador && ausencia.colaborador.nome.toLowerCase().indexOf(buscaColaborador.toLowerCase()) === -1) {
@@ -277,7 +267,7 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
 
     console.log('Ausências filtradas:', filtered);
     return filtered;
-  }, [ausencias, anoAtual, mesAtual, filtroTipo, filtroStatus, buscaColaborador]);
+  }, [ausencias, anoAtual, mesAtual, filtroSquad, buscaColaborador]);
 
   // Agrupar ausências por colaborador (versão simplificada)
   const ausenciasPorColaborador = useMemo(() => {
@@ -380,13 +370,7 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
     }
   }, [onAusenciaClick]);
 
-  // Dropdown options para status
-  const statusOptions: IDropdownOption[] = [
-    { key: 'todos', text: 'Todos os status' },
-    { key: StatusAusencia.PENDENTE, text: StatusAusencia.PENDENTE },
-    { key: StatusAusencia.APROVADO, text: StatusAusencia.APROVADO },
-    { key: StatusAusencia.REJEITADO, text: StatusAusencia.REJEITADO }
-  ];
+
 
   return (
     <div className={styles.timelineContainer} style={componentStyles.container}>
@@ -403,7 +387,7 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
         <div style={componentStyles.headerActions}>
           {/* Controles de navegação entre meses */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
-            <button 
+            <button
               style={{
                 ...componentStyles.refreshButton,
                 width: '32px',
@@ -416,8 +400,8 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
             >
               <Icon iconName="ChevronLeft" style={{ fontSize: '14px' }} />
             </button>
-            
-            <button 
+
+            <button
               style={{
                 backgroundColor: 'transparent',
                 border: 'none',
@@ -433,8 +417,8 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
             >
               Hoje
             </button>
-            
-            <button 
+
+            <button
               style={{
                 ...componentStyles.refreshButton,
                 width: '32px',
@@ -448,9 +432,9 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
               <Icon iconName="ChevronRight" style={{ fontSize: '14px' }} />
             </button>
           </div>
-          
+
           {/* Botão de adicionar ausência */}
-          <button 
+          <button
             style={componentStyles.addButton}
             onClick={onAddAusencia}
             title="Adicionar férias"
@@ -458,9 +442,9 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
           >
             <Icon iconName="Add" style={{ fontSize: '16px' }} />
           </button>
-          
+
           {/* Botão de refresh */}
-          <button 
+          <button
             style={componentStyles.refreshButton}
             onClick={onRefresh}
             disabled={isLoading}
@@ -492,18 +476,10 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
           </StackItem>
           <StackItem>
             <Dropdown
-              placeholder="Tipo de ausência"
-              options={tipoOptions}
-              selectedKey={filtroTipo}
-              onChange={(_, option) => setFiltroTipo((option?.key as TipoAusencia | 'todos') || 'todos')}
-            />
-          </StackItem>
-          <StackItem>
-            <Dropdown
-              placeholder="Status"
-              options={statusOptions}
-              selectedKey={filtroStatus}
-              onChange={(_, option) => setFiltroStatus((option?.key as StatusAusencia | 'todos') || 'todos')}
+              placeholder="Filtrar por Squad"
+              options={squadOptions}
+              selectedKey={filtroSquad}
+              onChange={(_, option) => setFiltroSquad((option?.key as string | 'todos') || 'todos')}
             />
           </StackItem>
         </Stack>
@@ -544,6 +520,11 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
                   <Text variant="small" style={{ color: '#666666', display: 'block' }}>
                     {colaborador.email}
                   </Text>
+                  {colaborador.squad && (
+                    <Text variant="small" style={{ color: '#8000FF', fontWeight: '500' }}>
+                      {colaborador.squad}
+                    </Text>
+                  )}
                   {colaborador.departamento && (
                     <Text variant="small" style={{ color: '#666666' }}>
                       {colaborador.departamento}

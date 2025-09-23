@@ -14,42 +14,48 @@ export const COLABORADORES_MOCK: IColaborador[] = [
     nome: 'Ana Silva',
     email: 'ana.silva@empresa.com',
     departamento: 'Desenvolvimento',
-    avatar: 'https://via.placeholder.com/40/FF8000/FFFFFF?text=AS'
+    avatar: 'https://via.placeholder.com/40/FF8000/FFFFFF?text=AS',
+    squad: 'Squad A'
   },
   {
     id: '2',
     nome: 'Bruno Santos',
     email: 'bruno.santos@empresa.com',
     departamento: 'Design',
-    avatar: 'https://via.placeholder.com/40/8000FF/FFFFFF?text=BS'
+    avatar: 'https://via.placeholder.com/40/8000FF/FFFFFF?text=BS',
+    squad: 'Squad B'
   },
   {
     id: '3',
     nome: 'Carla Oliveira',
     email: 'carla.oliveira@empresa.com',
     departamento: 'Marketing',
-    avatar: 'https://via.placeholder.com/40/2ECC71/FFFFFF?text=CO'
+    avatar: 'https://via.placeholder.com/40/2ECC71/FFFFFF?text=CO',
+    squad: 'Squad A'
   },
   {
     id: '4',
     nome: 'Diego Ferreira',
     email: 'diego.ferreira@empresa.com',
     departamento: 'Desenvolvimento',
-    avatar: 'https://via.placeholder.com/40/E74C3C/FFFFFF?text=DF'
+    avatar: 'https://via.placeholder.com/40/E74C3C/FFFFFF?text=DF',
+    squad: 'Squad C'
   },
   {
     id: '5',
     nome: 'Elena Costa',
     email: 'elena.costa@empresa.com',
     departamento: 'RH',
-    avatar: 'https://via.placeholder.com/40/3498DB/FFFFFF?text=EC'
+    avatar: 'https://via.placeholder.com/40/3498DB/FFFFFF?text=EC',
+    squad: 'Squad B'
   },
   {
     id: '6',
     nome: 'Felipe Lima',
     email: 'felipe.lima@empresa.com',
     departamento: 'Vendas',
-    avatar: 'https://via.placeholder.com/40/F39C12/FFFFFF?text=FL'
+    avatar: 'https://via.placeholder.com/40/F39C12/FFFFFF?text=FL',
+    squad: 'Squad D'
   }
 ];
 
@@ -233,6 +239,7 @@ export const converterDadosSharePoint = (dadosSharePoint: any[]): IAusencia[] =>
       nome: item.Colaborador?.Title || 'Usuário Desconhecido',
       email: item.Colaborador?.EMail || 'email.nao.informado@empresa.com',
       // departamento: 'Não informado'
+      squad: item.Squad || ''
     };
     
     // Registrar informações do colaborador no console

@@ -79,7 +79,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
   const [selectedAusencia, setSelectedAusencia] = useState<IAusencia | undefined>(undefined);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [legendaItems, setLegendaItems] = useState<Array<{tipo: string; cor: string; nome: string}>>([]);
-  const [tipoOptions, setTipoOptions] = useState<Array<{key: string, text: string}>>([]); // Novo estado para opções de tipo
+  const [squadOptions, setSquadOptions] = useState<Array<{key: string, text: string}>>([]); // Novo estado para opções de squad
 
   // Serviço para comunicação com SharePoint
   const vacationService = React.useMemo(() => new VacationService(sp), [sp]);
@@ -114,14 +114,19 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
           // Gerar legenda com cores dinâmicas
           const legendaDinamica = gerarLegendaDinamica();
           setLegendaItems(legendaDinamica);
-          
-          // Armazenar opções de tipo para passar ao componente de filtro
-          setTipoOptions(opcoesTipo);
         } catch (legendaErr) {
           console.warn('Erro ao carregar legenda do SharePoint, usando padrão:', legendaErr);
           // Usar tipos padrão se falhar
           inicializarCoresDinamicas(['Ferias', 'Day off aniversario']);
           setLegendaItems(gerarLegendaDinamica());
+        }
+
+        // Carregar opções de Squad do SharePoint
+        try {
+          const opcoesSquad = await vacationService.getSquadOptions();
+          setSquadOptions(opcoesSquad);
+        } catch (squadErr) {
+          console.warn('Erro ao carregar opções de Squad do SharePoint:', squadErr);
         }
       }
 
@@ -182,6 +187,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
             DataFim: formData.endDate,
             TipoFerias: formData.vacationType,
             Observacoes: formData.observations || '',
+            Squad: formData.squad || '',
             ColaboradorId: formData.employeeId // Passar o ID do colaborador
           });
         } else {
@@ -191,6 +197,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
             DataFim: formData.endDate,
             TipoFerias: formData.vacationType,
             Observacoes: formData.observations || '',
+            Squad: formData.squad || '',
             ColaboradorId: formData.employeeId // Passar o ID do colaborador
           });
         }
@@ -292,7 +299,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
           legendaCustomizada={legendaItems}
           onRefresh={handleRefresh}
           isLoading={isLoading}
-          tipoOptionsFromSharePoint={tipoOptions}
+          squadOptionsFromSharePoint={squadOptions}
           onAddAusencia={handleAddAusencia}
         />
 
@@ -333,7 +340,8 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
             startDate: selectedAusencia.dataInicio.toISOString().split('T')[0],
             endDate: selectedAusencia.dataFim.toISOString().split('T')[0],
             vacationType: selectedAusencia.tipo,
-            observations: selectedAusencia.observacoes || ''
+            observations: selectedAusencia.observacoes || '',
+            squad: selectedAusencia.colaborador.squad || ''
           } : undefined}
           isEditing={!!selectedAusencia}
         />

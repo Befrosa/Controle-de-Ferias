@@ -4,6 +4,7 @@ export interface IVacationFormData {
   endDate: string;
   vacationType: string;
   observations?: string;
+  squad?: string;
 }
 
 export interface IVacationFormProps {
@@ -20,6 +21,7 @@ export interface IUserInfo {
   email: string;
   jobTitle?: string;
   department?: string;
+  squad?: string;
 }
 
 export interface IVacationTypeOption {

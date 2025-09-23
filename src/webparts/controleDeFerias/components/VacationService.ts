@@ -18,9 +18,9 @@ export class VacationService {
   public async getVacations(): Promise<any[]> {
     try {
       const list = this._sp.web.lists.getByTitle("Controle de ferias");
-      // Ajustado para usar o campo Colaborador do tipo People Picker
+      // Ajustado para usar o campo Colaborador do tipo People Picker e incluir Squad
       const items = await list.items
-        .select("Id", "Colaborador/Id", "Colaborador/Title", "Colaborador/EMail", "DataInicio", "DataFim", "TipoFerias", "Observacoes")
+        .select("Id", "Colaborador/Id", "Colaborador/Title", "Colaborador/EMail", "DataInicio", "DataFim", "TipoFerias", "Observacoes", "Squad")
         .expand("Colaborador")();
       
       // Retornar os dados no formato esperado pela função converterDadosSharePoint
@@ -34,7 +34,8 @@ export class VacationService {
         DataInicio: item.DataInicio,
         DataFim: item.DataFim,
         TipoFerias: item.TipoFerias,
-        Observacoes: item.Observacoes
+        Observacoes: item.Observacoes,
+        Squad: item.Squad
       }));
     } catch (error) {
       console.error("Error fetching vacations:", error);
@@ -57,7 +58,8 @@ export class VacationService {
         DataInicio: data.DataInicio,
         DataFim: data.DataFim,
         TipoFerias: data.TipoFerias,
-        Observacoes: data.Observacoes || ''
+        Observacoes: data.Observacoes || '',
+        Squad: data.Squad || ''
       };
       
       // Adicionar o colaborador se o ID estiver disponível
@@ -89,7 +91,8 @@ export class VacationService {
         DataInicio: data.DataInicio,
         DataFim: data.DataFim,
         TipoFerias: data.TipoFerias,
-        Observacoes: data.Observacoes || ''
+        Observacoes: data.Observacoes || '',
+        Squad: data.Squad || ''
       };
       
       // Atualizar o colaborador se o ID estiver disponível
@@ -159,6 +162,44 @@ export class VacationService {
       { key: 'Folga compensatória', text: 'Folga compensatória' },
       { key: 'Ausência justificada', text: 'Ausência justificada' },
       { key: 'Outros', text: 'Outros' }
+    ];
+  }
+
+  /**
+   * Gets squad options from SharePoint choice field.
+   * @returns A promise that resolves to an array of dropdown options.
+   */
+  public async getSquadOptions(): Promise<Array<{key: string, text: string}>> {
+    try {
+      const list = this._sp.web.lists.getByTitle("Controle de ferias");
+      const field = await list.fields.getByInternalNameOrTitle("Squad")();
+
+      console.log('Campo Squad:', field);
+
+      if (field && field.Choices && field.Choices.length > 0) {
+        console.log('Loaded squad options from SharePoint:', field.Choices);
+        return field.Choices.map((choice: string) => ({
+          key: choice,
+          text: choice
+        }));
+      } else {
+        console.warn('No choices found in Squad field, using default options');
+        return this.getDefaultSquadOptions();
+      }
+    } catch (error) {
+      console.error('Error getting squad options from SharePoint:', error);
+      // Return default options on error
+      return this.getDefaultSquadOptions();
+    }
+  }
+
+  private getDefaultSquadOptions(): Array<{key: string, text: string}> {
+    console.log('Obtendo opções de squad padrão');
+    return [
+      { key: 'Squad A', text: 'Squad A' },
+      { key: 'Squad B', text: 'Squad B' },
+      { key: 'Squad C', text: 'Squad C' },
+      { key: 'Squad D', text: 'Squad D' }
     ];
   }
 }

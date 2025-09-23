@@ -41,7 +41,8 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
     startDate: '',
     endDate: '',
     vacationType: '',
-    observations: ''
+    observations: '',
+    squad: ''
   });
 
   const [selectedUser, setSelectedUser] = useState<IUserInfo | undefined>(undefined);
@@ -51,23 +52,27 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
   const [submitMessageType, setSubmitMessageType] = useState<MessageBarType>(MessageBarType.success);
   const [vacationTypes, setVacationTypes] = useState<IDropdownOption[]>([]); // Novo estado para tipos de férias
   const [isLoadingTypes, setIsLoadingTypes] = useState<boolean>(true); // Estado para carregamento dos tipos
+  const [squadOptions, setSquadOptions] = useState<IDropdownOption[]>([]); // Novo estado para opções de squad
+  const [isLoadingSquads, setIsLoadingSquads] = useState<boolean>(true); // Estado para carregamento dos squads
 
   // Serviço para comunicação com SharePoint
   const vacationService = React.useMemo(() => new VacationService(sp), [sp]);
 
-  // Carregar tipos de férias do SharePoint
+  // Carregar tipos de férias e squads do SharePoint
   useEffect(() => {
-    const loadVacationTypes = async () => {
+    const loadOptions = async () => {
       setIsLoadingTypes(true);
+      setIsLoadingSquads(true);
+      
       try {
+        // Carregar tipos de férias
         const types = await vacationService.getVacationTypeOptions();
         console.log('Tipos de férias carregados:', types);
-        // Converter para o formato IDropdownOption
-        const dropdownOptions: IDropdownOption[] = types.map(type => ({
+        const vacationDropdownOptions: IDropdownOption[] = types.map(type => ({
           key: type.key,
           text: type.text
         }));
-        setVacationTypes(dropdownOptions);
+        setVacationTypes(vacationDropdownOptions);
       } catch (error) {
         console.error('Error loading vacation types:', error);
         // Fallback para tipos padrão
@@ -83,10 +88,32 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
       } finally {
         setIsLoadingTypes(false);
       }
+
+      try {
+        // Carregar opções de squad
+        const squads = await vacationService.getSquadOptions();
+        console.log('Opções de squad carregadas:', squads);
+        const squadDropdownOptions: IDropdownOption[] = squads.map(squad => ({
+          key: squad.key,
+          text: squad.text
+        }));
+        setSquadOptions(squadDropdownOptions);
+      } catch (error) {
+        console.error('Error loading squad options:', error);
+        // Fallback para opções padrão
+        setSquadOptions([
+          { key: 'Squad A', text: 'Squad A' },
+          { key: 'Squad B', text: 'Squad B' },
+          { key: 'Squad C', text: 'Squad C' },
+          { key: 'Squad D', text: 'Squad D' }
+        ]);
+      } finally {
+        setIsLoadingSquads(false);
+      }
     };
 
     if (isOpen) {
-      loadVacationTypes();
+      loadOptions();
     }
   }, [isOpen, vacationService]);
 
@@ -99,7 +126,8 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
         startDate: '',
         endDate: '',
         vacationType: '',
-        observations: ''
+        observations: '',
+        squad: ''
       });
     }
     setSelectedUser(undefined);
@@ -191,7 +219,8 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
       startDate: '',
       endDate: '',
       vacationType: '',
-      observations: ''
+      observations: '',
+      squad: ''
     });
     setSelectedUser(undefined);
     setErrors({});
@@ -235,6 +264,11 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
 
   const handleObservationsChange = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newValue?: string): void => {
     setFormData(prev => ({ ...prev, observations: newValue || '' }));
+  };
+
+  const handleSquadChange = (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
+    const value = option ? option.key as string : '';
+    setFormData(prev => ({ ...prev, squad: value }));
   };
 
   return (
@@ -369,6 +403,22 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
         </div>
 
         <div className={styles.formSection}>
+          <Dropdown
+            label="Squad"
+            placeholder={isLoadingSquads ? "Carregando squads..." : "Selecione o squad"}
+            options={squadOptions}
+            selectedKey={formData.squad}
+            onChange={handleSquadChange}
+            disabled={isLoadingSquads}
+          />
+          {isLoadingSquads && (
+            <div style={{ marginTop: '8px', color: '#666666' }}>
+              Carregando opções de squad do SharePoint...
+            </div>
+          )}
+        </div>
+
+        <div className={styles.formSection}>
           <TextField
             label="Observações"
             placeholder="Observações opcionais..."
@@ -384,7 +434,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
           <PrimaryButton
             text={isEditing ? 'Salvar Alterações' : 'Cadastrar'}
             onClick={handleSubmit}
-            disabled={isSubmitting || isLoadingTypes}
+            disabled={isSubmitting || isLoadingTypes || isLoadingSquads}
             className={styles.saveButton}
           />
           {isSubmitting && (
@@ -393,7 +443,7 @@ export const VacationForm: React.FunctionComponent<IVacationFormComponentProps> 
           <DefaultButton
             text="Cancelar"
             onClick={handleCancel}
-            disabled={isSubmitting || isLoadingTypes}
+            disabled={isSubmitting || isLoadingTypes || isLoadingSquads}
             className={styles.cancelButton}
           />
         </div>

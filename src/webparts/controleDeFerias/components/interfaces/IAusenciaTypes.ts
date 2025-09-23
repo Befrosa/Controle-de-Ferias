@@ -29,6 +29,7 @@ export interface IColaborador {
   email: string;
   departamento?: string;
   avatar?: string;
+  squad?: string;
 }
 
 /**
@@ -106,6 +107,6 @@ export interface ITimelineAusenciasProps {
   legendaCustomizada?: Array<{tipo: string; cor: string; nome: string}>;
   onRefresh?: () => void;
   isLoading?: boolean;
-  tipoOptionsFromSharePoint?: Array<{key: string, text: string}>;
+  squadOptionsFromSharePoint?: Array<{key: string, text: string}>;
   onAddAusencia?: () => void; // Adicionando o handler para adicionar ausência
 }
