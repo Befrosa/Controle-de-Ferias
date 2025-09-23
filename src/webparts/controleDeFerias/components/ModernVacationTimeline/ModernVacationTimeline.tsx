@@ -32,7 +32,6 @@ export interface IModernVacationTimelineProps {
 const inlineStyles = {
   container: {
     width: '100%',
-    minHeight: '100vh',
     position: 'relative' as 'relative',
     margin: '0',
     padding: '0',

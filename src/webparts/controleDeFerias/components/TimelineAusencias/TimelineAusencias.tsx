@@ -23,7 +23,6 @@ import styles from './TimelineAusencias.module.scss';
 const componentStyles = {
   container: {
     width: '100%',
-    minHeight: 'calc(100vh - 48px)',
     backgroundColor: '#ffffff',
     padding: '24px',
     boxSizing: 'border-box' as 'border-box',
