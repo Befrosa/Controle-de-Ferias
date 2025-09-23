@@ -60,17 +60,18 @@ export const COLABORADORES_MOCK: IColaborador[] = [
 ];
 
 /**
- * Função auxiliar para calcular dias úteis entre duas datas
+ * Função auxiliar para calcular todos os dias corridos entre duas datas (incluindo finais de semana)
  */
-const calcularDiasUteis = (dataInicio: Date, dataFim: Date): number => {
+const calcularDiasCorridos = (dataInicio: Date, dataFim: Date): number => {
+  // Normalizar as datas para evitar problemas de horário
+  const inicio = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), dataInicio.getDate());
+  const fim = new Date(dataFim.getFullYear(), dataFim.getMonth(), dataFim.getDate());
+  
   let dias = 0;
-  const atual = new Date(dataInicio.getTime());
+  const atual = new Date(inicio.getTime());
 
-  while (atual <= dataFim) {
-    const diaSemana = atual.getDay();
-    if (diaSemana !== 0 && diaSemana !== 6) { // Não conta sábado (6) e domingo (0)
-      dias++;
-    }
+  while (atual <= fim) {
+    dias++;
     atual.setDate(atual.getDate() + 1);
   }
 
@@ -107,7 +108,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
         observacoes: i === 0 ? 'Férias de verão' : 'Férias de fim de ano',
         aprovadoPor: 'Maria Gerente',
         dataSolicitacao: new Date(dataInicio.getTime() - (30 * 24 * 60 * 60 * 1000)),
-        diasTotais: calcularDiasUteis(dataInicio, dataFim),
+        diasTotais: calcularDiasCorridos(dataInicio, dataFim),
         sharePointId: idCounter // Adicionando o ID do SharePoint
       });
     }
@@ -170,7 +171,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
         observacoes,
         aprovadoPor: status === StatusAusencia.APROVADO ? 'Maria Gerente' : undefined,
         dataSolicitacao: new Date(dataInicio.getTime() - (7 * 24 * 60 * 60 * 1000)),
-        diasTotais: calcularDiasUteis(dataInicio, dataFim),
+        diasTotais: calcularDiasCorridos(dataInicio, dataFim),
         sharePointId: idCounter // Adicionando o ID do SharePoint
       });
     }
@@ -194,7 +195,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
     observacoes: 'Licença maternidade - nascimento do primeiro filho',
     aprovadoPor: 'RH - Elena Costa',
     dataSolicitacao: new Date(inicioMaternidade.getTime() - (60 * 24 * 60 * 60 * 1000)),
-    diasTotais: calcularDiasUteis(inicioMaternidade, fimMaternidade),
+    diasTotais: calcularDiasCorridos(inicioMaternidade, fimMaternidade),
     sharePointId: idCounter // Adicionando o ID do SharePoint
   });
 
@@ -214,7 +215,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
     observacoes: 'Licença paternidade',
     aprovadoPor: 'RH - Elena Costa',
     dataSolicitacao: new Date(inicioPaternidade.getTime() - (15 * 24 * 60 * 60 * 1000)),
-    diasTotais: calcularDiasUteis(inicioPaternidade, fimPaternidade),
+    diasTotais: calcularDiasCorridos(inicioPaternidade, fimPaternidade),
     sharePointId: idCounter // Adicionando o ID do SharePoint
   });
 
@@ -299,7 +300,7 @@ export const converterDadosSharePoint = (dadosSharePoint: any[]): IAusencia[] =>
       dataFim,
       observacoes: item.Observacoes || '',
       dataSolicitacao: dataInicio, // Usar data de início como fallback
-      diasTotais: calcularDiasUteis(dataInicio, dataFim),
+      diasTotais: calcularDiasCorridos(dataInicio, dataFim),
       sharePointId: item.Id // Adicionando o ID do SharePoint
     };
   });
