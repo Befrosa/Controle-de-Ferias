@@ -176,6 +176,24 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
     setMesAtual(hoje.getMonth());
   }, []);
 
+  // Navegação entre anos para o modo gráfico
+  const handleAnoAnterior = useCallback(() => {
+    console.log('Navegando para o ano anterior');
+    setAnoAtual(prevAno => prevAno - 1);
+  }, []);
+
+  const handleProximoAno = useCallback(() => {
+    console.log('Navegando para o próximo ano');
+    setAnoAtual(prevAno => prevAno + 1);
+  }, []);
+
+  const handleAnoAtual = useCallback(() => {
+    console.log('Voltando para o ano atual');
+    const hoje = new Date();
+    setAnoAtual(hoje.getFullYear());
+    setMesAtual(hoje.getMonth());
+  }, []);
+
   // Obter nome do mês
   const getNomeMes = useCallback((mesIndex: number): string => {
     const meses = [
@@ -334,18 +352,60 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
     return conflicts;
   }, [ausenciasFiltradas]);
 
-  // Dados para gráfico por mês
+  // Dados para gráfico por mês - usa todas as ausências do ano, não apenas as filtradas por mês
   const dadosGraficoPorMes = useMemo(() => {
     const meses = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
     ];
 
+    // Para o gráfico, usar todas as ausências do ano, aplicando apenas filtros de squad e colaborador
+    const ausenciasDoAno = ausencias.filter(ausencia => {
+      // Filtro por ano
+      const anoAusencia = ausencia.dataInicio.getFullYear();
+      if (anoAusencia !== anoAtual) return false;
+
+      // Filtro por squad (mesmo filtro da timeline)
+      if (filtroSquad !== 'todos') {
+        const squadColaborador = ausencia.colaborador.squad;
+        if (!squadColaborador || squadColaborador.toLowerCase().trim() !== filtroSquad.toLowerCase().trim()) {
+          return false;
+        }
+      }
+
+      // Filtro por colaborador (mesmo filtro da timeline)
+      if (buscaColaborador && ausencia.colaborador.nome.toLowerCase().indexOf(buscaColaborador.toLowerCase()) === -1) {
+        return false;
+      }
+
+      return true;
+    });
+
     const dadosMes = meses.map((nome, index) => {
-      const ausenciasDoMes = ausenciasFiltradas.filter(ausencia => {
+      const ausenciasDoMes = ausenciasDoAno.filter(ausencia => {
         const mesInicio = ausencia.dataInicio.getMonth();
         const mesFim = ausencia.dataFim.getMonth();
-        return mesInicio <= index && index <= mesFim;
+        const anoInicio = ausencia.dataInicio.getFullYear();
+        const anoFim = ausencia.dataFim.getFullYear();
+        
+        // Verificar se a ausência está ativa no mês específico do ano
+        let ausenciaNoMes = false;
+        
+        if (anoAtual === anoInicio && anoAtual === anoFim) {
+          // Mesmo ano de início e fim
+          ausenciaNoMes = mesInicio <= index && index <= mesFim;
+        } else if (anoAtual === anoInicio) {
+          // Ano selecionado é o ano de início
+          ausenciaNoMes = mesInicio <= index;
+        } else if (anoAtual === anoFim) {
+          // Ano selecionado é o ano de fim
+          ausenciaNoMes = index <= mesFim;
+        } else if (anoInicio < anoAtual && anoAtual < anoFim) {
+          // Ano selecionado está entre o início e o fim
+          ausenciaNoMes = true;
+        }
+        
+        return ausenciaNoMes;
       });
 
       return {
@@ -357,9 +417,9 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       };
     });
 
-    console.log('Dados do gráfico por mês:', dadosMes);
+    console.log('Dados do gráfico por mês (ano completo):', dadosMes);
     return dadosMes;
-  }, [ausenciasFiltradas]);
+  }, [ausencias, anoAtual, filtroSquad, buscaColaborador]);
 
   // Handler para clique em ausência
   const handleAusenciaClick = useCallback((ausencia: IAusencia) => {
@@ -377,60 +437,118 @@ export const TimelineAusencias: React.FunctionComponent<ITimelineAusenciasProps>
       <div style={componentStyles.header}>
         <div style={componentStyles.headerText}>
           <h2 style={componentStyles.headerTitle}>
-            Timeline de Ausências - {getNomeMes(mesAtual)} {anoAtual}
+            {modoVisualizacao === 'timeline' 
+              ? `Timeline de Ausências - ${getNomeMes(mesAtual)} ${anoAtual}`
+              : `Gráfico de Ausências - ${anoAtual}`
+            }
           </h2>
           <p style={componentStyles.headerSubtitle}>
-            Visualização moderna das ausências da equipe
+            {modoVisualizacao === 'timeline' 
+              ? 'Visualização mensal das ausências da equipe'
+              : 'Visualização anual por mês das ausências da equipe'
+            }
           </p>
         </div>
         <div style={componentStyles.headerActions}>
-          {/* Controles de navegação entre meses */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
-            <button
-              style={{
-                ...componentStyles.refreshButton,
-                width: '32px',
-                height: '32px',
-                minWidth: '32px'
-              }}
-              onClick={handleMesAnterior}
-              title="Mês anterior"
-              aria-label="Mês anterior"
-            >
-              <Icon iconName="ChevronLeft" style={{ fontSize: '14px' }} />
-            </button>
+          {/* Controles de navegação entre meses - apenas no modo timeline */}
+          {modoVisualizacao === 'timeline' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
+              <button
+                style={{
+                  ...componentStyles.refreshButton,
+                  width: '32px',
+                  height: '32px',
+                  minWidth: '32px'
+                }}
+                onClick={handleMesAnterior}
+                title="Mês anterior"
+                aria-label="Mês anterior"
+              >
+                <Icon iconName="ChevronLeft" style={{ fontSize: '14px' }} />
+              </button>
 
-            <button
-              style={{
-                backgroundColor: 'transparent',
-                border: 'none',
-                color: '#8000FF',
-                fontWeight: '600',
-                cursor: 'pointer',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                transition: 'background-color 0.3s ease'
-              }}
-              onClick={handleMesAtual}
-              title="Mês atual"
-            >
-              Hoje
-            </button>
+              <button
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#8000FF',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  transition: 'background-color 0.3s ease'
+                }}
+                onClick={handleMesAtual}
+                title="Mês atual"
+              >
+                Hoje
+              </button>
 
-            <button
-              style={{
-                ...componentStyles.refreshButton,
-                width: '32px',
-                height: '32px',
-                minWidth: '32px'
-              }}
-              onClick={handleProximoMes}
-              title="Próximo mês"
-              aria-label="Próximo mês"
-            >
-              <Icon iconName="ChevronRight" style={{ fontSize: '14px' }} />
-            </button>
-          </div>
+              <button
+                style={{
+                  ...componentStyles.refreshButton,
+                  width: '32px',
+                  height: '32px',
+                  minWidth: '32px'
+                }}
+                onClick={handleProximoMes}
+                title="Próximo mês"
+                aria-label="Próximo mês"
+              >
+                <Icon iconName="ChevronRight" style={{ fontSize: '14px' }} />
+              </button>
+            </div>
+          )}
+
+          {/* Controles de navegação entre anos - apenas no modo gráfico */}
+          {modoVisualizacao === 'grafico' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px' }}>
+              <button
+                style={{
+                  ...componentStyles.refreshButton,
+                  width: '32px',
+                  height: '32px',
+                  minWidth: '32px'
+                }}
+                onClick={handleAnoAnterior}
+                title="Ano anterior"
+                aria-label="Ano anterior"
+              >
+                <Icon iconName="ChevronLeft" style={{ fontSize: '14px' }} />
+              </button>
+
+              <button
+                style={{
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  color: '#8000FF',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  transition: 'background-color 0.3s ease'
+                }}
+                onClick={handleAnoAtual}
+                title="Ano atual"
+              >
+                {anoAtual}
+              </button>
+
+              <button
+                style={{
+                  ...componentStyles.refreshButton,
+                  width: '32px',
+                  height: '32px',
+                  minWidth: '32px'
+                }}
+                onClick={handleProximoAno}
+                title="Próximo ano"
+                aria-label="Próximo ano"
+              >
+                <Icon iconName="ChevronRight" style={{ fontSize: '14px' }} />
+              </button>
+            </div>
+          )}
 
           {/* Botão de adicionar ausência */}
           <button

@@ -313,7 +313,7 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
         <div style={{
           marginTop: '16px',
           textAlign: 'center',
-          color: '#666666',
+          color: '#ffffff',
           fontSize: '12px'
         }}>
           {ausencias.length} ausência(s) carregada(s) •
