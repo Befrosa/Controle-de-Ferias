@@ -33,7 +33,9 @@ src/webparts/controleDeFerias/components/
 │   └── IAusenciaTypes.ts           # Tipagem TypeScript completa
 ├── utils/
 │   ├── ColorMapping.ts             # Mapeamento de cores dinâmicas
-│   └── MockData.ts                 # Dados de exemplo e conversores
+│   ├── DataUtils.ts                # Utilitários para cálculos de data
+│   ├── DataConverter.ts            # Conversão de dados do SharePoint
+│   └── SampleData.ts               # Dados de exemplo para desenvolvimento
 ├── IndicadorAusencia/
 │   ├── IndicadorAusencia.tsx       # Componente reutilizável
 │   └── IndicadorAusencia.module.scss

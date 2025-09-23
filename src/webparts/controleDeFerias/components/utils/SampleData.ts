@@ -1,14 +1,15 @@
 /**
- * Dados de exemplo para demonstrar o componente TimelineAusencias
- * Inclui diferentes tipos de ausências, status e colaboradores
+ * Dados de exemplo para desenvolvimento e testes
+ * Este arquivo pode ser removido em produção se não for necessário
  */
 
 import { IAusencia, IColaborador, TipoAusencia, StatusAusencia } from '../interfaces/IAusenciaTypes';
+import { calcularDiasCorridos } from './DataUtils';
 
 /**
  * Colaboradores de exemplo
  */
-export const COLABORADORES_MOCK: IColaborador[] = [
+export const COLABORADORES_EXEMPLO: IColaborador[] = [
   {
     id: '1',
     nome: 'Ana Silva',
@@ -60,33 +61,14 @@ export const COLABORADORES_MOCK: IColaborador[] = [
 ];
 
 /**
- * Função auxiliar para calcular todos os dias corridos entre duas datas (incluindo finais de semana)
- */
-const calcularDiasCorridos = (dataInicio: Date, dataFim: Date): number => {
-  // Normalizar as datas para evitar problemas de horário
-  const inicio = new Date(dataInicio.getFullYear(), dataInicio.getMonth(), dataInicio.getDate());
-  const fim = new Date(dataFim.getFullYear(), dataFim.getMonth(), dataFim.getDate());
-  
-  let dias = 0;
-  const atual = new Date(inicio.getTime());
-
-  while (atual <= fim) {
-    dias++;
-    atual.setDate(atual.getDate() + 1);
-  }
-
-  return dias;
-};
-
-/**
  * Função para gerar ausências de exemplo
  */
-export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
+export const gerarAusenciasExemplo = (ano: number = 2024): IAusencia[] => {
   const ausencias: IAusencia[] = [];
   let idCounter = 1;
 
   // Gerar ausências para cada colaborador
-  COLABORADORES_MOCK.forEach(colaborador => {
+  COLABORADORES_EXEMPLO.forEach(colaborador => {
     // Férias anuais (1-2 períodos por pessoa)
     const numFeriasAnuais = Math.random() > 0.3 ? 2 : 1;
 
@@ -109,7 +91,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
         aprovadoPor: 'Maria Gerente',
         dataSolicitacao: new Date(dataInicio.getTime() - (30 * 24 * 60 * 60 * 1000)),
         diasTotais: calcularDiasCorridos(dataInicio, dataFim),
-        sharePointId: idCounter // Adicionando o ID do SharePoint
+        sharePointId: idCounter
       });
     }
 
@@ -172,7 +154,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
         aprovadoPor: status === StatusAusencia.APROVADO ? 'Maria Gerente' : undefined,
         dataSolicitacao: new Date(dataInicio.getTime() - (7 * 24 * 60 * 60 * 1000)),
         diasTotais: calcularDiasCorridos(dataInicio, dataFim),
-        sharePointId: idCounter // Adicionando o ID do SharePoint
+        sharePointId: idCounter
       });
     }
   });
@@ -180,7 +162,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
   // Adicionar alguns casos especiais para demonstrar funcionalidades
 
   // Licença maternidade
-  const colaboradoraMaternidade = COLABORADORES_MOCK[2]; // Carla
+  const colaboradoraMaternidade = COLABORADORES_EXEMPLO[2]; // Carla
   const inicioMaternidade = new Date(ano, 8, 15); // 15 de setembro
   const fimMaternidade = new Date(inicioMaternidade.getTime());
   fimMaternidade.setDate(fimMaternidade.getDate() + 120); // 120 dias
@@ -196,11 +178,11 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
     aprovadoPor: 'RH - Elena Costa',
     dataSolicitacao: new Date(inicioMaternidade.getTime() - (60 * 24 * 60 * 60 * 1000)),
     diasTotais: calcularDiasCorridos(inicioMaternidade, fimMaternidade),
-    sharePointId: idCounter // Adicionando o ID do SharePoint
+    sharePointId: idCounter
   });
 
   // Licença paternidade
-  const colaboradorPaternidade = COLABORADORES_MOCK[1]; // Bruno
+  const colaboradorPaternidade = COLABORADORES_EXEMPLO[1]; // Bruno
   const inicioPaternidade = new Date(ano, 8, 20); // 20 de setembro
   const fimPaternidade = new Date(inicioPaternidade.getTime());
   fimPaternidade.setDate(fimPaternidade.getDate() + 5); // 5 dias
@@ -216,7 +198,7 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
     aprovadoPor: 'RH - Elena Costa',
     dataSolicitacao: new Date(inicioPaternidade.getTime() - (15 * 24 * 60 * 60 * 1000)),
     diasTotais: calcularDiasCorridos(inicioPaternidade, fimPaternidade),
-    sharePointId: idCounter // Adicionando o ID do SharePoint
+    sharePointId: idCounter
   });
 
   // Ordenar por data de início
@@ -226,82 +208,4 @@ export const gerarAusenciasMock = (ano: number = 2024): IAusencia[] => {
 /**
  * Dados de exemplo para testes
  */
-export const AUSENCIAS_MOCK = gerarAusenciasMock(2024);
-
-/**
- * Função para converter dados existentes do SharePoint para o novo formato
- */
-export const converterDadosSharePoint = (dadosSharePoint: any[]): IAusencia[] => {
-  return dadosSharePoint.map((item, index) => {
-    console.log("DADOS SHAREPOINT",item.Colaborador)
-    // Utilizar dados reais do campo Colaborador (People Picker)
-    const colaborador: IColaborador = {
-      id: item.Colaborador?.Id ? `sp-user-${item.Colaborador.Id}` : `sp-item-${item.Id || index}`,
-      nome: item.Colaborador?.Title || 'Usuário Desconhecido',
-      email: item.Colaborador?.EMail || 'email.nao.informado@empresa.com',
-      // departamento: 'Não informado'
-      squad: item.Squad || ''
-    };
-    
-    // Registrar informações do colaborador no console
-    console.log('=== DADOS DO COLABORADOR REAL ===');
-    console.log('Nome:', colaborador.nome);
-    console.log('Email:', colaborador.email);
-    console.log('Departamento:', colaborador.departamento);
-    console.log('ID:', colaborador.id);
-    console.log('============================');
-
-    // Mapear tipo de férias
-    let tipo: TipoAusencia;
-    switch (item.TipoFerias?.toLowerCase()) {
-      case 'férias anuais':
-      case 'ferias anuais':
-      case 'ferias-anuais':
-        tipo = TipoAusencia.FERIAS_ANUAIS;
-        break;
-      case 'licença médica':
-      case 'licenca médica':
-      case 'licenca-medica':
-        tipo = TipoAusencia.LICENCA_MEDICA;
-        break;
-      case 'licença maternidade':
-      case 'licenca maternidade':
-      case 'licenca-maternidade':
-        tipo = TipoAusencia.LICENCA_MATERNIDADE;
-        break;
-      case 'licença paternidade':
-      case 'licenca paternidade':
-      case 'licenca-paternidade':
-        tipo = TipoAusencia.LICENCA_PATERNIDADE;
-        break;
-      case 'folga compensatória':
-      case 'folga compensatoria':
-      case 'folga-compensatoria':
-        tipo = TipoAusencia.FOLGA_COMPENSATORIA;
-        break;
-      case 'ausência justificada':
-      case 'ausencia justificada':
-      case 'ausencia-justificada':
-        tipo = TipoAusencia.AUSENCIA_JUSTIFICADA;
-        break;
-      default:
-        tipo = TipoAusencia.OUTROS;
-    }
-
-    const dataInicio = new Date(item.DataInicio);
-    const dataFim = new Date(item.DataFim);
-
-    return {
-      id: item.Id?.toString() || `converted-${index}`,
-      colaborador,
-      tipo,
-      status: StatusAusencia.APROVADO, // Assumir aprovado para dados existentes
-      dataInicio,
-      dataFim,
-      observacoes: item.Observacoes || '',
-      dataSolicitacao: dataInicio, // Usar data de início como fallback
-      diasTotais: calcularDiasCorridos(dataInicio, dataFim),
-      sharePointId: item.Id // Adicionando o ID do SharePoint
-    };
-  });
-};
+export const AUSENCIAS_EXEMPLO = gerarAusenciasExemplo(2024);

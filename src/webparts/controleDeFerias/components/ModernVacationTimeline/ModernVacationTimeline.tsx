@@ -12,7 +12,8 @@ import { TimelineAusencias } from '../TimelineAusencias/TimelineAusencias';
 import { VacationForm } from '../forms/VacationForm';
 import { IAusencia } from '../interfaces/IAusenciaTypes';
 import { VacationService } from '../VacationService';
-import { converterDadosSharePoint, AUSENCIAS_MOCK } from '../utils/MockData';
+import { converterDadosSharePoint } from '../utils/DataConverter';
+import { AUSENCIAS_EXEMPLO } from '../utils/SampleData';
 import { inicializarCoresDinamicas, gerarLegendaDinamica } from '../utils/ColorMapping';
 import styles from './ModernVacationTimeline.module.scss';
 
@@ -101,9 +102,9 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
 
     try {
       if (useMockData) {
-        // Usar dados mock para demonstração
+        // Usar dados de exemplo para demonstração
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simular delay
-        setAusencias(AUSENCIAS_MOCK);
+        setAusencias(AUSENCIAS_EXEMPLO);
       } else {
         // Carregar dados reais do SharePoint
         const dadosSharePoint = await vacationService.getVacations();
@@ -144,8 +145,8 @@ export const ModernVacationTimeline: React.FunctionComponent<IModernVacationTime
 
       // Fallback para dados mock em caso de erro
       if (!useMockData) {
-        console.warn('Usando dados mock como fallback...');
-        setAusencias(AUSENCIAS_MOCK);
+        console.warn('Usando dados de exemplo como fallback...');
+        setAusencias(AUSENCIAS_EXEMPLO);
       }
     } finally {
       setIsLoading(false);
